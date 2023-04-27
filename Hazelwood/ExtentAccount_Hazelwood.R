@@ -72,7 +72,11 @@ hazelwood_CLC00_df_type <- hazelwood_CLC00_df %>% group_by(Class_Desc) %>%
 hazelwood_CLC18_df_type <- hazelwood_CLC18_df %>% group_by(Class_Desc) %>%
   summarize(Area_2018 = round(sum(Area_ha),2))
 
+hazelwood_CLC_Table <- Reduce(function(...) merge(..., by='Class_Desc', all=TRUE), list(hazelwood_CLC00_df_type, hazelwood_CLC18_df_type))
 
+hazelwood_CLC_Table <- hazelwood_CLC_Table %>% replace(is.na(.), 0) %>% 
+  mutate(Change_00_18_ha = round(Area_2018 - Area_2000, 2),
+         Change_00_18_Perc = round((Area_2018 - Area_2000)/Area_2000*100, 2))
 
 
 
