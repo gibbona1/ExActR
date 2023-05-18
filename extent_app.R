@@ -34,9 +34,7 @@ shinyApp(
       setwd(previouswd)
       
       tmp_file1 <- paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/")
-      map  <- rgdal::readOGR(tmp_file1)
-      #map2 <- rgdal::spTransform(map, CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
-      
+      map       <- st_read(tmp_file1, quiet=TRUE)
       return(map)
     }
     # Read shapefiles
