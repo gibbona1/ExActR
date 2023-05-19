@@ -156,7 +156,7 @@ shinyApp(
       
       code_grps <- union(df1$CODE_00, df2$CODE_18)
       
-      extent_mat <- sapply(code_grps, function(grp) unlist(change_area(df1, df2, grp)))
+      extent_mat <- sapply(code_grps, function(grp) suppressWarnings(unlist(change_area(df1, df2, grp))))
       
       extent_df  <- as.data.frame(extent_mat)
       
@@ -194,7 +194,7 @@ shinyApp(
       }
       
       cross_mat <- do.call(rbind, lapply(code_grps, function(grp1){
-        sapply(code_grps, function(grp2) unlist(cross_area(grp1, grp2)))
+        sapply(code_grps, function(grp2) suppressWarnings(unlist(cross_area(grp1, grp2))))
       }))
       
       rownames(cross_mat) <- colnames(cross_mat) <- code_grps
