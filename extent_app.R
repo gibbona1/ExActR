@@ -24,10 +24,12 @@ shinyApp(
       )
     ),
     fluidRow(
-      h3(HTML("Extent table (m<sup>2</sup>)")),
+      h3(HTML("Extent table (Ha)")),
       tableOutput("extentTable"),
       h3(HTML("Extent table (% of opening)")),
-      tableOutput("extentPercentTable")
+      tableOutput("extentPercentTable"),
+      h3(HTML("Ecosystem Type Change Matrix")),
+      tableOutput("extentMatrix")
     )
   ),
   server <- function(input, output) {
@@ -47,13 +49,13 @@ shinyApp(
       return(map1)
     }
     
+    blank_zero <- function(x){
+      if(length(x)==0)
+        return(0)
+      return(x)
+    }
+    
     change_area <- function(sf1, sf2, grp){
-      blank_zero <- function(x){
-        if(length(x)==0)
-          return(0)
-        return(x)
-      }
-      
       int_area <- sf1 %>% filter(CODE_00 == grp) %>%
         st_intersection(sf2 %>% filter(CODE_18 == grp)) %>%
         st_area() %>% as.numeric() %>% blank_zero() %>% sum()
@@ -175,6 +177,40 @@ shinyApp(
       extent_df       <- extentData()
       extent_df[2:4,] <- sapply(extent_df, function(x) x[2:4]/x[1])
       return(extent_df[2:4,])
+    }, rownames = TRUE)
+    
+    extentMat <- reactive({
+      if(is.null(input$sf1) | is.null(input$sf2))
+        return(NULL)
+      df1 <- sf1()
+      df2 <- sf2()
+      
+      code_grps <- union(df1$CODE_00, df2$CODE_18)
+      
+      cross_area <- function(grp1, grp2) {
+        df1 %>% filter(CODE_00 == grp1) %>%
+          st_intersection(df2 %>% filter(CODE_18 == grp2)) %>%
+          st_area() %>% as.numeric() %>% blank_zero() %>% sum()
+      }
+      
+      cross_mat <- do.call(rbind, lapply(code_grps, function(grp1){
+        sapply(code_grps, function(grp2) unlist(cross_area(grp1, grp2)))
+      }))
+      
+      rownames(cross_mat) <- colnames(cross_mat) <- code_grps
+      
+      cross_mat <- cross_mat/10^4
+      
+      cross_df <- as.data.frame(cross_mat)
+      
+      cross_df$openings <- rowSums(cross_df)
+      cross_df["closings",] <- colSums(cross_df)
+      
+      return(cross_df)
+    })
+    
+    output$extentMatrix <- renderTable({
+      extent_mat <- extentMat()
     }, rownames = TRUE)
   }
 )
