@@ -25,7 +25,9 @@ shinyApp(
     ),
     fluidRow(
       h3(HTML("Extent table (m<sup>2</sup>)")),
-      tableOutput("extentTable")
+      tableOutput("extentTable"),
+      h3(HTML("Extent table (% of opening)")),
+      tableOutput("extentPercentTable")
     )
   ),
   server <- function(input, output) {
@@ -44,6 +46,34 @@ shinyApp(
       map1      <- st_transform(map, "EPSG:4326")
       return(map1)
     }
+    
+    change_area <- function(sf1, sf2, grp){
+      blank_zero <- function(x){
+        if(length(x)==0)
+          return(0)
+        return(x)
+      }
+      
+      int_area <- sf1 %>% filter(CODE_00 == grp) %>%
+        st_intersection(sf2 %>% filter(CODE_18 == grp)) %>%
+        st_area() %>% as.numeric() %>% blank_zero() %>% sum()
+      
+      opening_A <- sf1 %>% 
+        filter(CODE_00 == grp) %>% st_area() %>% 
+        as.numeric() %>% blank_zero() %>% sum()
+      closing_A <- sf2 %>% 
+        filter(CODE_18 == grp) %>% st_area() %>% 
+        as.numeric() %>% blank_zero() %>% sum()
+      
+      res <- list(
+        "opening"    = opening_A/10^4,
+        "increase"   = (closing_A - int_area)/10^4,
+        "decrease"   = -1*(opening_A - int_area)/10^4,
+        "net change" = -1*(opening_A - closing_A)/10^4,
+        "closing"    = closing_A/10^4)
+      return(res)
+    }
+    
     # Read shapefiles
     sf1 <- reactive({
       #tmp_file1 <- "Hazelwood/hazelwood_CLC2000.shp"
@@ -118,45 +148,33 @@ shinyApp(
                   title = "Code <br>")
     })
     
-    output$extentTable <- renderTable({
-      if(is.null(input$sf1) | is.null(input$sf2))
-        return(NULL)
-      
+    extentData <- reactive({
       df1 <- sf1()
       df2 <- sf2()
       
-      change_area <- function(sf1, sf2, grp){
-        blank_zero <- function(x){
-          if(length(x)==0)
-            return(0)
-          return(x)
-        }
-        
-        int_area <- sf1 %>% filter(CODE_00 == grp) %>%
-          st_intersection(df2 %>% filter(CODE_18 == grp)) %>%
-          st_area() %>% as.numeric() %>% blank_zero() %>% sum()
-        
-        opening_A <- df1 %>% 
-          filter(CODE_00 == grp) %>% st_area() %>% 
-          as.numeric() %>% blank_zero() %>% sum()
-        closing_A <- df2 %>% 
-          filter(CODE_18 == grp) %>% st_area() %>% 
-          as.numeric() %>% blank_zero() %>% sum()
-        
-        res <- list(
-             "opening"  = opening_A,
-             "increase" = opening_A - int_area,
-             "decrease" = closing_A - int_area,
-             "change"   = closing_A - opening_A,
-             "closing"  = closing_A)
-        return(res)
-      }
-      
       code_grps <- union(df1$CODE_00, df2$CODE_18)
       
-      extent_mat <- sapply(code_grps, function(grp) change_area(df1, df2, grp))
+      extent_mat <- sapply(code_grps, function(grp) unlist(change_area(df1, df2, grp)))
       
-      return(as.data.frame(extent_mat, row.names = rownames(extent_mat)))
+      extent_df  <- as.data.frame(extent_mat)
+      
+      return(extent_df)
+    })
+    
+    output$extentTable <- renderTable({
+      if(is.null(input$sf1) | is.null(input$sf2))
+        return(NULL)
+      extent_df <- extentData()
+      extent_df$Total <- rowSums(extent_df)
+      return(extent_df)
+    }, rownames = TRUE)
+    
+    output$extentPercentTable <- renderTable({
+      if(is.null(input$sf1) | is.null(input$sf2))
+        return(NULL)
+      extent_df       <- extentData()
+      extent_df[2:4,] <- sapply(extent_df, function(x) x[2:4]/x[1])
+      return(extent_df[2:4,])
     }, rownames = TRUE)
   }
 )
