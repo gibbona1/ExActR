@@ -1,6 +1,8 @@
 library(shiny)
 library(leaflet)
 library(sf)
+library(dplyr)
+library(ggplot2)
 
 map_accepts <- c('.shp','.dbf','.sbn','.sbx','.shx',".prj")
 
@@ -20,6 +22,10 @@ shinyApp(
              h3("Closing Map"),
              leafletOutput("plot2")
       )
+    ),
+    fluidRow(
+      h3(HTML("Extent table (m<sup>2</sup>)")),
+      tableOutput("extentTable")
     )
   ),
   server <- function(input, output) {
@@ -35,7 +41,8 @@ shinyApp(
       
       tmp_file1 <- paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/")
       map       <- st_read(tmp_file1, quiet=TRUE)
-      return(map)
+      map1      <- st_transform(map, "EPSG:4326")
+      return(map1)
     }
     # Read shapefiles
     sf1 <- reactive({
@@ -110,5 +117,46 @@ shinyApp(
                   position = "bottomleft", 
                   title = "Code <br>")
     })
+    
+    output$extentTable <- renderTable({
+      if(is.null(input$sf1) | is.null(input$sf2))
+        return(NULL)
+      
+      df1 <- sf1()
+      df2 <- sf2()
+      
+      change_area <- function(sf1, sf2, grp){
+        blank_zero <- function(x){
+          if(length(x)==0)
+            return(0)
+          return(x)
+        }
+        
+        int_area <- sf1 %>% filter(CODE_00 == grp) %>%
+          st_intersection(df2 %>% filter(CODE_18 == grp)) %>%
+          st_area() %>% as.numeric() %>% blank_zero() %>% sum()
+        
+        opening_A <- df1 %>% 
+          filter(CODE_00 == grp) %>% st_area() %>% 
+          as.numeric() %>% blank_zero() %>% sum()
+        closing_A <- df2 %>% 
+          filter(CODE_18 == grp) %>% st_area() %>% 
+          as.numeric() %>% blank_zero() %>% sum()
+        
+        res <- list(
+             "opening"  = opening_A,
+             "increase" = opening_A - int_area,
+             "decrease" = closing_A - int_area,
+             "change"   = closing_A - opening_A,
+             "closing"  = closing_A)
+        return(res)
+      }
+      
+      code_grps <- union(df1$CODE_00, df2$CODE_18)
+      
+      extent_mat <- sapply(code_grps, function(grp) change_area(df1, df2, grp))
+      
+      return(as.data.frame(extent_mat, row.names = rownames(extent_mat)))
+    }, rownames = TRUE)
   }
 )
