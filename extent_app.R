@@ -60,15 +60,16 @@ server <- function(input, output) {
   }
   
   change_area <- function(sf1, sf2, grp){
-    int_area <- sf1 %>% filter(CODE_00 == grp) %>%
-      st_intersection(sf2 %>% filter(CODE_18 == grp)) %>%
+    sf1_sub <- filter(sf1, sf1[[input$map1_sel_col]] == grp)
+    sf2_sub <- filter(sf2, sf2[[input$map2_sel_col]] == grp)
+    
+    int_area <- sf1_sub %>%
+      st_intersection(sf2_sub) %>%
       st_area() %>% as.numeric() %>% blank_zero() %>% sum()
     
-    opening_A <- sf1 %>% 
-      filter(CODE_00 == grp) %>% st_area() %>% 
+    opening_A <- sf1_sub %>% st_area() %>% 
       as.numeric() %>% blank_zero() %>% sum()
-    closing_A <- sf2 %>% 
-      filter(CODE_18 == grp) %>% st_area() %>% 
+    closing_A <- sf2_sub %>% st_area() %>% 
       as.numeric() %>% blank_zero() %>% sum()
     
     res <- list(
@@ -129,16 +130,20 @@ server <- function(input, output) {
   plot1Ready <- reactive({is.null(input$sf1) | is.null(input$map1_sel_col)})
   plot2Ready <- reactive({is.null(input$sf2) | is.null(input$map2_sel_col)})
   
-  plotCols <- reactive({
+  codeGroups <- reactive({
     cols <- c()
     if(!plot1Ready())
-      cols <- c(cols, sf1()[[input$map1_sel_col]])
+      cols <- union(cols, sf1()[[input$map1_sel_col]])
     if(!plot2Ready())
-      cols <- c(cols, sf2()[[input$map2_sel_col]])
-    return(colorFactor(
+      cols <- union(cols, sf2()[[input$map2_sel_col]])
+    return(cols)
+  })
+  
+  plotCols <- reactive({
+    colorFactor(
       palette = "viridis",
-      domain  = unique(cols)
-    ))
+      domain  = codeGroups()
+    )
   })
   
   # Render the first plot
@@ -164,12 +169,11 @@ server <- function(input, output) {
   })
   
   extentData <- reactive({
+    req(input$map1_sel_col, input$map2_sel_col)
     df1 <- sf1()
     df2 <- sf2()
     
-    code_grps <- union(df1$CODE_00, df2$CODE_18)
-    
-    extent_mat <- sapply(code_grps, function(grp) suppressWarnings(unlist(change_area(df1, df2, grp))))
+    extent_mat <- sapply(codeGroups(), function(grp) suppressWarnings(unlist(change_area(df1, df2, grp))))
     
     extent_df  <- as.data.frame(extent_mat)
     
@@ -193,16 +197,19 @@ server <- function(input, output) {
   }, rownames = TRUE)
   
   extentMat <- reactive({
-    if(is.null(input$sf1) | is.null(input$sf2))
+    if(plot1Ready() | plot2Ready())
       return(NULL)
+    
     df1 <- sf1()
     df2 <- sf2()
     
-    code_grps <- union(df1$CODE_00, df2$CODE_18)
+    code_grps <- codeGroups()
     
     cross_area <- function(grp1, grp2) {
-      df1 %>% filter(CODE_00 == grp1) %>%
-        st_intersection(df2 %>% filter(CODE_18 == grp2)) %>%
+      df1_sub <- filter(df1, df1[[input$map1_sel_col]] == grp1)
+      df2_sub <- filter(df2, df2[[input$map2_sel_col]] == grp2)
+      df1_sub %>%
+        st_intersection(df2_sub) %>%
         st_area() %>% as.numeric() %>% blank_zero() %>% sum()
     }
     
@@ -216,7 +223,7 @@ server <- function(input, output) {
     
     cross_df <- as.data.frame(cross_mat)
     
-    cross_df$openings <- rowSums(cross_df)
+    cross_df$openings     <- rowSums(cross_df)
     cross_df["closings",] <- colSums(cross_df)
     
     return(cross_df)
