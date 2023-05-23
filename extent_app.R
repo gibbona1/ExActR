@@ -82,12 +82,12 @@ server <- function(input, output) {
   pl <- leaflet() %>%
     addTiles() %>%
     addPolygons(data         = data,
-                fillColor    = plotCols(data[[column]]),
+                fillColor    = plotCols()(data[[column]]),
                 fillOpacity  = 0.7,
                 color        = "#b2aeae", #boundary colour, need to use hex color codes.
                 weight       = 0.5, 
                 smoothFactor = 0.2) %>%
-    addLegend(pal      = plotCols,
+    addLegend(pal      = plotCols(),
               values   = data[[column]], 
               position = "bottomleft", 
               title    = "Code <br>")
@@ -134,20 +134,7 @@ server <- function(input, output) {
                setView(lng = 0, lat = 0, zoom = 2))
     }
     
-    habitat_palette <- plotCols()
-    
-    leaflet() %>%
-      addTiles() %>%
-      addPolygons(data = sf1(),
-                  fillColor = habitat_palette(sf1()$CODE_00),
-                  fillOpacity = 0.7,
-                  color = "#b2aeae", #boundary colour, need to use hex color codes.
-                  weight = 0.5, 
-                  smoothFactor = 0.2) %>%
-      addLegend(pal = habitat_palette,
-                values = sf1()$CODE_00, 
-                position = "bottomleft", 
-                title = "Code <br>")
+    return(gen_map_leaflet(sf1(), "CODE_00"))
   })
   
   # Render the second plot
@@ -158,20 +145,7 @@ server <- function(input, output) {
                setView(lng = 10, lat = 10, zoom = 2))
     }
     
-    habitat_palette <- plotCols()
-    
-    leaflet() %>%
-      addTiles() %>%
-      addPolygons(data = sf2(),
-                  fillColor = habitat_palette(sf2()$CODE_18),
-                  fillOpacity = 0.7,
-                  color = "#b2aeae", #boundary colour, need to use hex color codes.
-                  weight = 0.5, 
-                  smoothFactor = 0.2) %>%
-      addLegend(pal = habitat_palette,
-                values = sf2()$CODE_18, 
-                position = "bottomleft", 
-                title = "Code <br>")
+    return(gen_map_leaflet(sf2(), "CODE_18"))
   })
   
   extentData <- reactive({
