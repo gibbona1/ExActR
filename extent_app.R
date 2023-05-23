@@ -138,14 +138,14 @@ server <- function(input, output) {
     selectInput("map2_sel_col", "Select Grouping Column", choices = names(sf2()))
   })
   
-  plot1Ready <- reactive({is.null(input$sf1) | is.null(input$map1_sel_col)})
-  plot2Ready <- reactive({is.null(input$sf2) | is.null(input$map2_sel_col)})
+  plot1Wait <- reactive({is.null(input$sf1) | is.null(input$map1_sel_col)})
+  plot2Wait <- reactive({is.null(input$sf2) | is.null(input$map2_sel_col)})
   
   codeGroups <- reactive({
     cols <- c()
-    if(!plot1Ready())
+    if(!plot1Wait())
       cols <- union(cols, sf1()[[input$map1_sel_col]])
-    if(!plot2Ready())
+    if(!plot2Wait())
       cols <- union(cols, sf2()[[input$map2_sel_col]])
     return(cols)
   })
@@ -159,7 +159,7 @@ server <- function(input, output) {
   
   # Render the first plot
   output$plot1 <- renderLeaflet({
-    if(plot1Ready())
+    if(plot1Wait())
       return(leaflet() %>% setView(lng = 0, lat = 0, zoom = 2))
     
     return(gen_map_leaflet(sf1(), input$map1_sel_col))
@@ -167,7 +167,7 @@ server <- function(input, output) {
   
   # Render the second plot
   output$plot2 <- renderLeaflet({
-    if(plot2Ready())
+    if(plot2Wait())
       return(leaflet() %>% setView(lng = 10, lat = 10, zoom = 2))
     
     return(gen_map_leaflet(sf2(), input$map2_sel_col))
@@ -175,22 +175,18 @@ server <- function(input, output) {
   
   extentData <- reactive({
     req(input$map1_sel_col, input$map2_sel_col)
-    df1 <- sf1()
-    df2 <- sf2()
     
     extent_mat <- sapply(codeGroups(), function(grp) {
-      lazy_unlist(change_area(df1, df2, grp))
+      lazy_unlist(change_area(sf1(), sf2(), grp))
       })
     
-    extent_df  <- as.data.frame(extent_mat)
-    
-    return(extent_df)
+    return(as.data.frame(extent_df))
   })
   
   output$extentTable <- renderTable({
     if(is.null(input$sf1) | is.null(input$sf2))
       return(NULL)
-    extent_df <- extentData()
+    extent_df       <- extentData()
     extent_df$Total <- rowSums(extent_df)
     return(extent_df)
   }, rownames = TRUE)
@@ -198,13 +194,12 @@ server <- function(input, output) {
   output$extentPercentTable <- renderTable({
     if(is.null(input$sf1) | is.null(input$sf2))
       return(NULL)
-    extent_df       <- extentData()
-    extent_df[2:4,] <- sapply(extent_df, function(x) x[2:4]/x[1])
-    return(extent_df[2:4,])
+    percent_df <- sapply(extentData(), function(x) x[2:4]/x[1])
+    return(percent_df)
   }, rownames = TRUE)
   
   extentMat <- reactive({
-    if(plot1Ready() | plot2Ready())
+    if(plot1Wait() | plot2Wait())
       return(NULL)
     
     df1 <- sf1()
@@ -228,10 +223,10 @@ server <- function(input, output) {
     
     cross_mat <- cross_mat/10^4
     
-    cross_df <- as.data.frame(cross_mat)
+    cross_df  <- as.data.frame(cross_mat)
     
-    cross_df$openings     <- rowSums(cross_df)
-    cross_df["closings",] <- colSums(cross_df)
+    cross_df$openings      <- rowSums(cross_df)
+    cross_df["closings", ] <- colSums(cross_df)
     
     return(cross_df)
   })
