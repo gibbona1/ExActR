@@ -9,9 +9,18 @@ map_accepts <- c('.shp','.dbf','.sbn','.sbx','.shx',".prj")
 uifunc <- function(){
   fluidPage(
     fluidRow(
-      column(4, fileInput("sf1", "Upload Opening Map", accept=map_accepts, multiple = TRUE)),
-      column(4, align='center', br(), actionButton("extent", "Generate Extent")),
-      column(4, fileInput("sf2", "Upload Closing Map", accept=map_accepts, multiple = TRUE))
+      column(4, 
+             fileInput("sf1", "Upload Opening Map",
+                       accept   = map_accepts, 
+                       multiple = TRUE)
+             ),
+      column(4, align='center', br(),#actionButton("extent", "Generate Extent")
+             ),
+      column(4, 
+             fileInput("sf2", "Upload Closing Map", 
+                       accept   = map_accepts, 
+                       multiple = TRUE)
+             )
     ),
     fluidRow(
       column(6,
@@ -82,20 +91,22 @@ server <- function(input, output) {
   }
   
   gen_map_leaflet <- function(data, column){
-  pl <- leaflet() %>%
-    addTiles() %>%
-    addPolygons(data         = data,
-                fillColor    = plotCols()(data[[column]]),
-                fillOpacity  = 0.7,
-                color        = "#b2aeae", #boundary colour, need to use hex color codes.
-                weight       = 0.5, 
-                smoothFactor = 0.2) %>%
-    addLegend(pal      = plotCols(),
-              values   = data[[column]], 
-              position = "bottomleft", 
-              title    = "Code <br>")
-  return(pl)
+    pl <- leaflet() %>%
+      addTiles() %>%
+      addPolygons(data         = data,
+                  fillColor    = plotCols()(data[[column]]),
+                  fillOpacity  = 0.7,
+                  color        = "#b2aeae", #boundary colour, need to use hex color codes.
+                  weight       = 0.5, 
+                  smoothFactor = 0.2) %>%
+      addLegend(pal      = plotCols(),
+                values   = data[[column]], 
+                position = "bottomleft", 
+                title    = "Code <br>")
+    return(pl)
   }
+  
+  lazy_unlist <- function(x) suppressWarnings(unlist(x))
   
   # Read shapefiles
   sf1 <- reactive({
@@ -148,22 +159,16 @@ server <- function(input, output) {
   
   # Render the first plot
   output$plot1 <- renderLeaflet({
-    if(plot1Ready()){
-      return(leaflet() %>%
-               #addProviderTiles("OpenStreetMap.BlackAndWhite") %>%
-               setView(lng = 0, lat = 0, zoom = 2))
-    }
+    if(plot1Ready())
+      return(leaflet() %>% setView(lng = 0, lat = 0, zoom = 2))
     
     return(gen_map_leaflet(sf1(), input$map1_sel_col))
   })
   
   # Render the second plot
   output$plot2 <- renderLeaflet({
-    if(plot2Ready()){
-      return(leaflet() %>%
-               #addProviderTiles("OpenStreetMap.BlackAndWhite") %>%
-               setView(lng = 10, lat = 10, zoom = 2))
-    }
+    if(plot2Ready())
+      return(leaflet() %>% setView(lng = 10, lat = 10, zoom = 2))
     
     return(gen_map_leaflet(sf2(), input$map2_sel_col))
   })
@@ -173,7 +178,9 @@ server <- function(input, output) {
     df1 <- sf1()
     df2 <- sf2()
     
-    extent_mat <- sapply(codeGroups(), function(grp) suppressWarnings(unlist(change_area(df1, df2, grp))))
+    extent_mat <- sapply(codeGroups(), function(grp) {
+      lazy_unlist(change_area(df1, df2, grp))
+      })
     
     extent_df  <- as.data.frame(extent_mat)
     
@@ -214,7 +221,7 @@ server <- function(input, output) {
     }
     
     cross_mat <- do.call(rbind, lapply(code_grps, function(grp1){
-      sapply(code_grps, function(grp2) suppressWarnings(unlist(cross_area(grp1, grp2))))
+      sapply(code_grps, function(grp2) lazy_unlist(cross_area(grp1, grp2)))
     }))
     
     rownames(cross_mat) <- colnames(cross_mat) <- code_grps
