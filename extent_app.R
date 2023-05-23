@@ -4,6 +4,8 @@ library(sf)
 library(dplyr)
 library(ggplot2)
 
+#need to upload at least .shp, .shx, .dbf, .prj files for each 
+#so the map knows where to put itself
 map_accepts <- c('.shp','.dbf','.sbn','.sbx','.shx',".prj")
 
 uifunc <- function(){
@@ -47,6 +49,7 @@ uifunc <- function(){
   
 server <- function(input, output) {
     
+  #helper function to read the .shp file and project to the desired coordinate system
   setup_read_sf <- function(shpdf){
     previouswd <- getwd()
     uploaddirectory <- dirname(shpdf$datapath[1])
@@ -62,12 +65,15 @@ server <- function(input, output) {
     return(map1)
   }
   
+  #to avoid errors, if map intersections return NULLs, just return zero
   blank_zero <- function(x){
     if(length(x)==0)
       return(0)
     return(x)
   }
   
+  #this gets the aggregate changes in each group 
+  #(start and end areas, and amount increased, decreased, changed)
   change_area <- function(sf1, sf2, grp){
     sf1_sub <- filter(sf1, sf1[[input$map1_sel_col]] == grp)
     sf2_sub <- filter(sf2, sf2[[input$map2_sel_col]] == grp)
@@ -90,6 +96,7 @@ server <- function(input, output) {
     return(res)
   }
   
+  #maps are very similar so just pass to a function the data and which column to colour by
   gen_map_leaflet <- function(data, column){
     pl <- leaflet() %>%
       addTiles() %>%
@@ -106,6 +113,7 @@ server <- function(input, output) {
     return(pl)
   }
   
+  #extract items from a list and suppress some warnings e.g. NAs, geometry issue, for now
   lazy_unlist <- function(x) suppressWarnings(unlist(x))
   
   # Read shapefiles
@@ -128,6 +136,7 @@ server <- function(input, output) {
     return(setup_read_sf(input$sf2))
   })
   
+  #UI with dropdown for grouping of the datasets e.g. habitat codes
   output$map1col <- renderUI({
     req(input$sf1)
     selectInput("map1_sel_col", "Select Grouping Column", choices = names(sf1()))
@@ -138,9 +147,12 @@ server <- function(input, output) {
     selectInput("map2_sel_col", "Select Grouping Column", choices = names(sf2()))
   })
   
+  #if the sf data or selectInput are not ready, wait
   plot1Wait <- reactive({is.null(input$sf1) | is.null(input$map1_sel_col)})
+  
   plot2Wait <- reactive({is.null(input$sf2) | is.null(input$map2_sel_col)})
   
+  #groups to iterate over for extent account
   codeGroups <- reactive({
     cols <- c()
     if(!plot1Wait())
@@ -150,6 +162,7 @@ server <- function(input, output) {
     return(cols)
   })
   
+  #common colour palette between the two maps for easier visualisation of groups
   plotCols <- reactive({
     colorFactor(
       palette = "viridis",
@@ -176,6 +189,7 @@ server <- function(input, output) {
   extentData <- reactive({
     req(input$map1_sel_col, input$map2_sel_col)
     
+    #get the opening, closing, changes for each code, extract to list of vectors
     extent_mat <- sapply(codeGroups(), function(grp) {
       lazy_unlist(change_area(sf1(), sf2(), grp))
       })
@@ -191,6 +205,7 @@ server <- function(input, output) {
     return(extent_df)
   }, rownames = TRUE)
   
+  #the change portions can be represented as a percent of the opening
   output$extentPercentTable <- renderTable({
     if(is.null(input$sf1) | is.null(input$sf2))
       return(NULL)
@@ -198,6 +213,9 @@ server <- function(input, output) {
     return(percent_df)
   }, rownames = TRUE)
   
+  #A bit more complicated. This now has a matrix where: 
+  ##diagonals: amounts unchanged between opening and closing in that group
+  ##off-diagonals: amount changed from the type in the row to the type in the column
   extentMat <- reactive({
     if(plot1Wait() | plot2Wait())
       return(NULL)
