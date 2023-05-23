@@ -16,11 +16,13 @@ uifunc <- function(){
     fluidRow(
       column(6,
              h3("Opening Map"),
-             leafletOutput("plot1")
+             leafletOutput("plot1"),
+             uiOutput("map1col")
       ),
       column(6,
              h3("Closing Map"),
-             leafletOutput("plot2")
+             leafletOutput("plot2"),
+             uiOutput("map2col")
       )
     ),
     fluidRow(
@@ -114,12 +116,25 @@ server <- function(input, output) {
     return(setup_read_sf(input$sf2))
   })
   
+  output$map1col <- renderUI({
+    req(input$sf1)
+    selectInput("map1_sel_col", "Select Grouping Column", choices = names(sf1()))
+  })
+  
+  output$map2col <- renderUI({
+    req(input$sf2)
+    selectInput("map2_sel_col", "Select Grouping Column", choices = names(sf2()))
+  })
+  
+  plot1Ready <- reactive({is.null(input$sf1) | is.null(input$map1_sel_col)})
+  plot2Ready <- reactive({is.null(input$sf2) | is.null(input$map2_sel_col)})
+  
   plotCols <- reactive({
     cols <- c()
-    if(!is.null(input$sf1))
-      cols <- c(cols, sf1()$CODE_00)
-    if(!is.null(input$sf2))
-      cols <- c(cols, sf2()$CODE_18)
+    if(!plot1Ready())
+      cols <- c(cols, sf1()[[input$map1_sel_col]])
+    if(!plot2Ready())
+      cols <- c(cols, sf2()[[input$map2_sel_col]])
     return(colorFactor(
       palette = "viridis",
       domain  = unique(cols)
@@ -128,24 +143,24 @@ server <- function(input, output) {
   
   # Render the first plot
   output$plot1 <- renderLeaflet({
-    if(is.null(input$sf1)){
+    if(plot1Ready()){
       return(leaflet() %>%
                #addProviderTiles("OpenStreetMap.BlackAndWhite") %>%
                setView(lng = 0, lat = 0, zoom = 2))
     }
     
-    return(gen_map_leaflet(sf1(), "CODE_00"))
+    return(gen_map_leaflet(sf1(), input$map1_sel_col))
   })
   
   # Render the second plot
   output$plot2 <- renderLeaflet({
-    if(is.null(input$sf2)){
+    if(plot2Ready()){
       return(leaflet() %>%
                #addProviderTiles("OpenStreetMap.BlackAndWhite") %>%
                setView(lng = 10, lat = 10, zoom = 2))
     }
     
-    return(gen_map_leaflet(sf2(), "CODE_18"))
+    return(gen_map_leaflet(sf2(), input$map2_sel_col))
   })
   
   extentData <- reactive({
@@ -208,7 +223,7 @@ server <- function(input, output) {
   })
   
   output$extentMatrix <- renderTable({
-    extent_mat <- extentMat()
+    extentMat()
   }, rownames = TRUE)
 }
 
