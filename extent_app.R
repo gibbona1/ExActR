@@ -14,7 +14,9 @@ uifunc <- function() {
       column(4,
              fileInput("sf1", "Upload Opening Map",
                        accept   = map_accepts,
-                       multiple = TRUE)
+                       multiple = TRUE),
+             tags$style("white-space: pre-wrap;"),
+             verbatimTextOutput("sf1_name")
              ),
       column(4, align = "center", br(),
              #actionButton("extent", "Generate Extent")
@@ -22,7 +24,9 @@ uifunc <- function() {
       column(4,
              fileInput("sf2", "Upload Closing Map",
                        accept   = map_accepts,
-                       multiple = TRUE)
+                       multiple = TRUE),
+             tags$style("white-space: pre-wrap;"),
+             verbatimTextOutput("sf2_name")
              )
     ),
     fluidRow(
@@ -146,6 +150,18 @@ server <- function(input, output) {
   output$map2col <- renderUI({
     req(input$sf2)
     selectInput("map2_sel_col", "Select Grouping Column", choices = names(sf2()))
+  })
+  
+  output$sf1_name <- renderText({
+    req(input$sf1)
+    disp_name <- strsplit(input$sf1$name, "\\.")
+    return(disp_name[[1]][1])
+  })
+  
+  output$sf2_name <- renderText({
+    req(input$sf2)
+    disp_name <- strsplit(input$sf2$name, "\\.")
+    return(disp_name[[1]][1])
   })
 
   #if the sf data or selectInput are not ready, wait
