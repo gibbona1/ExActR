@@ -226,7 +226,9 @@ server <- function(input, output) {
   output$extentPercentTable <- renderTable({
     if(is.null(input$sf1) | is.null(input$sf2))
       return(NULL)
-    percent_df <- sapply(extentData(), function(x) x[2:4] / x[1])
+    extent_df  <- extentData()
+    percent_df <- as.data.frame(sapply(extent_df, function(x) x[2:4] / x[1]))
+    rownames(percent_df) <- rownames(extent_df)[2:4]
     return(percent_df)
   }, rownames = TRUE)
 
