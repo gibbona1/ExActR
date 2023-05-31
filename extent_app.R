@@ -8,6 +8,10 @@ library(ggplot2)
 #so the map knows where to put itself
 map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
 
+bold_rownames <- function(el) {
+  tags$style(paste0("#", el, " td:first-child { font-weight: bold; }"))
+}
+
 uifunc <- function() {
   fluidPage(
     fluidRow(
@@ -42,11 +46,14 @@ uifunc <- function() {
       )
     ),
     fluidRow(
-      h3(HTML("Extent table (Ha)")),
+      h3("Extent table (Ha)"),
+      bold_rownames("extentTable"),
       tableOutput("extentTable"),
-      h3(HTML("Extent table (% of opening)")),
+      h3("Extent table (% of opening)"),
+      bold_rownames("extentPercentTable"),      
       tableOutput("extentPercentTable"),
-      h3(HTML("Ecosystem Type Change Matrix")),
+      h3("Ecosystem Type Change Matrix"),
+      bold_rownames("extentMatrix"),
       tableOutput("extentMatrix")
     )
   )
