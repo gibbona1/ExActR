@@ -51,13 +51,33 @@ uifunc <- function() {
       fluidRow(
         h3("Extent table (Ha)"),
         bold_rownames("extentTable"),
-        tableOutput("extentTable"),
+        wellPanel(
+          tableOutput("extentTable")
+        ),
         h3("Extent table (% of opening)"),
-        bold_rownames("extentPercentTable"),      
-        tableOutput("extentPercentTable"),
+        bold_rownames("extentPercentTable"), 
+        wellPanel(
+          tableOutput("extentPercentTable")
+        ),
         h3("Ecosystem Type Change Matrix"),
         bold_rownames("extentMatrix"),
-        tableOutput("extentMatrix")
+        wellPanel(
+          tableOutput("extentMatrix")
+        ),
+        hr(),
+        wellPanel(
+          style = "background: lightblue;",
+          HTML(paste0(tags$b("Note: "), "In the ", 
+            tags$em("Ecosystem Type Change Matrix"), ":", br(),
+            tags$ul(
+              tags$li("The diagonal values are the amounts unchanged for that group."),
+              tags$li("Each row is the unchanged areas plus the reduction in area."),
+              tags$li("Each column is the unchanged areas plus the additions in area"),
+              tags$li("The sum of a row will equal the opening extent."),
+              tags$li("The sum of a column will equal the closing extent.")
+            )
+          ))
+        )
       )
       )},
       {tabPanel("Plots")},
