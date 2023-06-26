@@ -80,7 +80,8 @@ uifunc <- function() {
         )
       )
       )},
-      {tabPanel("Plots")},
+      {tabPanel("Composition Plots",
+                uiOutput("extentPlots"))},
       {tabPanel("Habitat List")}
     )
   )
@@ -186,16 +187,19 @@ server <- function(input, output) {
     selectInput("map2_sel_col", "Select Grouping Column", choices = names(sf2()))
   })
   
+  get_sf_name <- function(x){
+    disp_name <- strsplit(x, "\\.")
+    return(disp_name[[1]][1])
+  }
+  
   output$sf1_name <- renderText({
     req(input$sf1)
-    disp_name <- strsplit(input$sf1$name, "\\.")
-    return(disp_name[[1]][1])
+    return(get_sf_name(input$sf1$name))
   })
   
   output$sf2_name <- renderText({
     req(input$sf2)
-    disp_name <- strsplit(input$sf2$name, "\\.")
-    return(disp_name[[1]][1])
+    return(get_sf_name(input$sf2$name))
   })
 
   #if the sf data or selectInput are not ready, wait
@@ -246,6 +250,15 @@ server <- function(input, output) {
       })
 
     return(as.data.frame(extent_mat))
+  })
+  
+  changeData <- reactive({
+    extent_df <- extentData()
+    change_df <- data.frame(id     = colnames(extent_df),
+                            open   = as.numeric(extent_df["opening",]),
+                            close  = as.numeric(extent_df["closing",]),
+                            change = as.numeric(extent_df["net change",]))
+    return(change_df)
   })
 
   output$extentTable <- renderTable({
@@ -308,6 +321,58 @@ server <- function(input, output) {
   output$extentMatrix <- renderTable({
     extentMat()
   }, rownames = TRUE)
+  
+  output$extentPlots <- renderUI({
+    if(is.null(input$sf1) | is.null(input$sf2))
+      return(NULL)
+    
+    wellPanel(
+      plotOutput("plotComp"),
+      plotOutput("plotStack"),
+      plotOutput("plotMap1"),
+      plotOutput("plotMap2")
+    )
+  })
+  
+  output$plotComp <- renderPlot({
+    change_df <- changeData()
+    
+    ggplot(change_df) + 
+      geom_bar(aes(x="open", y = open, fill = id), position = "stack", stat="identity") +
+      geom_bar(aes(x="close", y = close, fill = id), position = "stack", stat="identity") +
+      ggtitle("Habitat composition") +
+      ylab("Area (Ha)") +
+      xlab("") + theme_classic()
+  })
+  
+  output$plotStack <- renderPlot({
+    change_df <- changeData()
+    
+    ggplot(change_df) + 
+      geom_bar(aes(x=id, y=change, fill = id), stat="identity") +
+      coord_flip() +
+      ggtitle("Ecosystem type net changes") +
+      ylab("Area change (Ha)") +
+      xlab("") + theme_classic()
+  })
+  
+  output$plotMap1 <- renderPlot({
+    ggplot() +
+      geom_sf(data = sf1(), aes(fill=.data[[input$map1_sel_col]]), color=NA) +
+      labs(title = get_sf_name(input$sf1$name),
+           fill = "Ecosystem Type") + 
+      theme_bw() + 
+      coord_sf(crs = "EPSG:4326")
+  })
+  
+  output$plotMap2 <- renderPlot({
+    ggplot() +
+      geom_sf(data = sf2(), aes(fill=.data[[input$map2_sel_col]]), color=NA) +
+      labs(title = get_sf_name(input$sf2$name),
+           fill = "Ecosystem Type") + 
+      theme_bw() + 
+      coord_sf(crs = "EPSG:4326")
+  })
 }
 
 shinyApp(uifunc(), server)
