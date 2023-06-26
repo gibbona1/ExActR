@@ -82,7 +82,8 @@ uifunc <- function() {
       )},
       {tabPanel("Composition Plots",
                 uiOutput("extentPlots"))},
-      {tabPanel("Habitat List")}
+      {tabPanel("Habitat Explorer",
+                uiOutput("habitatExplorer"))}
     )
   )
 }
@@ -373,6 +374,37 @@ server <- function(input, output) {
       theme_bw() + 
       coord_sf(crs = "EPSG:4326")
   })
+  
+  output$habitatExplorer <- renderUI({
+    if(is.null(input$sf1) | is.null(input$sf2))
+      return(NULL)
+    div(
+      h3("Opening data"),
+      tableOutput("openingExpTable"),
+      h3("Closing data"),
+      tableOutput("closingExpTable")
+    )
+  })
+  
+  output$openingExpTable <- renderTable({
+    df <- changeData()
+    open_df <- data.frame(code   = df$id,
+                          aream2 = df$open*10^4,
+                          areaha = df$open,
+                          perc   = df$open/sum(df$open))
+    colnames(open_df) <- c("Code", "Area (m<sup>2</sup>)", "Area (Ha)", "% Coverage")
+    return(open_df)
+  }, sanitize.text.function = function(x) x)
+  
+  output$closingExpTable <- renderTable({
+    df <- changeData()
+    close_df <- data.frame(code   = df$id,
+                           aream2 = df$close*10^4,
+                           areaha = df$close,
+                           perc   = df$close/sum(df$close))
+    colnames(close_df) <- c("Code", "Area (m<sup>2</sup>)", "Area (Ha)", "% Coverage")
+    return(close_df)
+  }, sanitize.text.function = function(x) x)
 }
 
 shinyApp(uifunc(), server)
