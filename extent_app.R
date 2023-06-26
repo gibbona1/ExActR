@@ -14,47 +14,54 @@ bold_rownames <- function(el) {
 
 uifunc <- function() {
   fluidPage(
-    fluidRow(
-      column(4,
-             fileInput("sf1", "Upload Opening Map",
-                       accept   = map_accepts,
-                       multiple = TRUE),
-             tags$style("white-space: pre-wrap;"),
-             verbatimTextOutput("sf1_name")
-             ),
-      column(4, align = "center", br(),
-             #actionButton("extent", "Generate Extent")
-             ),
-      column(4,
-             fileInput("sf2", "Upload Closing Map",
-                       accept   = map_accepts,
-                       multiple = TRUE),
-             tags$style("white-space: pre-wrap;"),
-             verbatimTextOutput("sf2_name")
-             )
-    ),
-    fluidRow(
-      column(6,
-             h3("Opening Map"),
-             leafletOutput("plot1"),
-             uiOutput("map1col")
+    titlePanel("Extent Account Creator"),
+    tabsetPanel(
+      {tabPanel("Extent Account",
+      fluidRow(
+        column(4,
+               fileInput("sf1", "Upload Opening Map",
+                         accept   = map_accepts,
+                         multiple = TRUE),
+               tags$style("white-space: pre-wrap;"),
+               verbatimTextOutput("sf1_name")
+               ),
+        column(4, align = "center", br(),
+               #actionButton("extent", "Generate Extent")
+               ),
+        column(4,
+               fileInput("sf2", "Upload Closing Map",
+                         accept   = map_accepts,
+                         multiple = TRUE),
+               tags$style("white-space: pre-wrap;"),
+               verbatimTextOutput("sf2_name")
+               )
       ),
-      column(6,
-             h3("Closing Map"),
-             leafletOutput("plot2"),
-             uiOutput("map2col")
+      fluidRow(
+        column(6,
+               h3("Opening Map"),
+               leafletOutput("plot1"),
+               uiOutput("map1col")
+        ),
+        column(6,
+               h3("Closing Map"),
+               leafletOutput("plot2"),
+               uiOutput("map2col")
+        )
+      ),
+      fluidRow(
+        h3("Extent table (Ha)"),
+        bold_rownames("extentTable"),
+        tableOutput("extentTable"),
+        h3("Extent table (% of opening)"),
+        bold_rownames("extentPercentTable"),      
+        tableOutput("extentPercentTable"),
+        h3("Ecosystem Type Change Matrix"),
+        bold_rownames("extentMatrix"),
+        tableOutput("extentMatrix")
       )
-    ),
-    fluidRow(
-      h3("Extent table (Ha)"),
-      bold_rownames("extentTable"),
-      tableOutput("extentTable"),
-      h3("Extent table (% of opening)"),
-      bold_rownames("extentPercentTable"),      
-      tableOutput("extentPercentTable"),
-      h3("Ecosystem Type Change Matrix"),
-      bold_rownames("extentMatrix"),
-      tableOutput("extentMatrix")
+      )},
+      {tabPanel("Plots")},
+      {tabPanel("Habitat List")}
     )
   )
 }
