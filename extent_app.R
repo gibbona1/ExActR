@@ -19,6 +19,14 @@ copy_button <- function(id, format, formatLab){
                       onclick = paste0("copytable('", id, "','", format, "')")))
 }
 
+copy_button_group <- function(id){
+  div(
+    copy_button(id, "text",  "Text"),
+    copy_button(id, "html",  "HTML"),
+    copy_button(id, "latex", "LaTeX")
+  )
+}
+
 uifunc <- function() {
   fluidPage(
     useShinyjs(),
@@ -62,21 +70,19 @@ uifunc <- function() {
         bold_rownames("extentTable"),
         wellPanel(
           tableOutput("extentTable"),
-          div(
-            copy_button("extentTable", "text",  "Text"),
-            copy_button("extentTable", "html",  "HTML"),
-            copy_button("extentTable", "latex", "LaTeX")
-          )
+          copy_button_group("extentTable")
         ),
         h3("Extent table (% of opening)"),
         bold_rownames("extentPercentTable"), 
         wellPanel(
-          tableOutput("extentPercentTable")
+          tableOutput("extentPercentTable"),
+          copy_button_group("extentPercentTable")
         ),
         h3("Ecosystem Type Change Matrix"),
         bold_rownames("extentMatrix"),
         wellPanel(
-          tableOutput("extentMatrix")
+          tableOutput("extentMatrix"),
+          copy_button_group("extentMatrix")
         ),
         hr(),
         wellPanel(
