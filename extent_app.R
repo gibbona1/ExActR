@@ -13,6 +13,12 @@ bold_rownames <- function(el) {
   tags$style(paste0("#", el, " td:first-child { font-weight: bold; }"))
 }
 
+copy_button <- function(id, format, formatLab){
+  return(actionButton(paste("copy", id, format, sep = "_"), 
+                      paste("Copy as", formatLab), 
+                      onclick = paste0("copytable('", id, "','", format, "')")))
+}
+
 uifunc <- function() {
   fluidPage(
     useShinyjs(),
@@ -57,9 +63,9 @@ uifunc <- function() {
         wellPanel(
           tableOutput("extentTable"),
           div(
-          actionButton("copyExtentTab", 
-                       "Copy as HTML", 
-                       onclick = "copytable('extentTable', 'html')")
+            copy_button("extentTable", "text",  "Text"),
+            copy_button("extentTable", "html",  "HTML"),
+            copy_button("extentTable", "latex", "LaTeX")
           )
         ),
         h3("Extent table (% of opening)"),

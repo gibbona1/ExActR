@@ -8,16 +8,13 @@ function copytable(el, format) {
 
   if (format === 'html') {
     copiedText = urlField.outerHTML;
-  } else if (format === 'excel') {
-    copiedText = convertTableToExcel(urlField);
   } else if (format === 'latex') {
     copiedText = convertTableToLaTeX(urlField);
-  } else {
+  } else if (format === 'text') {
     copiedText = urlField.innerText;
   }
   
   if (copiedText) {
-    //alert(copiedText)
     copyToClipboard(copiedText)
       .then(function() {
         alert('Table copied successfully as ' + format);
@@ -29,24 +26,8 @@ function copytable(el, format) {
   window.getSelection().removeAllRanges();
 }
 
-function convertTableToExcel(table) {
-  var worksheet = XLSX.utils.table_to_sheet(table);
-  var workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet 1');
-  var excelData = XLSX.write(workbook, { type: 'binary' });
-
-  // Convert Excel data to base64
-  var array = new Uint8Array(excelData);
-  var data = '';
-  for (var i = 0; i < array.length; i++) {
-    data += String.fromCharCode(array[i]);
-  }
-  var base64 = window.btoa(data);
-
-  return base64;
-}
-
-function convertTableToLaTeX(table) {
+function convertTableToLaTeX(tablediv) {
+  var table = tablediv.querySelector('table');
   var latex = '';
   var rows = table.rows;
   var numRows = rows.length;
