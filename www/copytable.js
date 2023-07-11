@@ -48,6 +48,12 @@ function convertTableToLaTeX(tablediv) {
       cellText = cellText.replace(/\\/g, '\\textbackslash{}');
       cellText = cellText.replace(/\$/g, '\\$');
       cellText = cellText.replace(/\^/g, '\\textasciicircum{}');
+      // Check if cell is bold
+      var isBold = (j == 0 || i == 0);
+      if (isBold) {
+        // Use LaTeX formatting for bold cells
+        cellText = '\\textbf{' + cellText + '}';
+      }
       latex += cellText + ' & ';
     }
     // Remove trailing '&'
