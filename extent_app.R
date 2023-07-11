@@ -1,4 +1,5 @@
 library(shiny)
+library(shinyjs)
 library(leaflet)
 library(sf)
 library(dplyr)
@@ -14,6 +15,7 @@ bold_rownames <- function(el) {
 
 uifunc <- function() {
   fluidPage(
+    useShinyjs(),
     titlePanel("Extent Account Creator"),
     tabsetPanel(
       {tabPanel("Extent Account",
@@ -49,10 +51,16 @@ uifunc <- function() {
         )
       ),
       fluidRow(
+        tags$script(src = "copytable.js"),
         h3("Extent table (Ha)"),
         bold_rownames("extentTable"),
         wellPanel(
-          tableOutput("extentTable")
+          tableOutput("extentTable"),
+          div(
+          actionButton("copyExtentTab", 
+                       "Copy as HTML", 
+                       onclick = "copytable('extentTable', 'html')")
+          )
         ),
         h3("Extent table (% of opening)"),
         bold_rownames("extentPercentTable"), 
