@@ -121,9 +121,7 @@ server <- function(input, output) {
     setwd(previouswd)
 
     tmp_file1 <- paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/")
-    map       <- st_read(tmp_file1, quiet=TRUE)
-    map1      <- st_transform(map, "EPSG:4326")
-    return(map1)
+    return(st_read(tmp_file1, quiet=TRUE) %>% st_transform("EPSG:4326"))
   }
 
   #to avoid errors, if map intersections return NULLs, just return zero
@@ -179,15 +177,6 @@ server <- function(input, output) {
 
   # Read shapefiles
   sf1 <- reactive({
-    #tmp_file1 <- "Hazelwood/hazelwood_CLC2000.shp"
-    #if(is.null(input$sf1)){
-      #showNotification(HTML(paste0("Using temporary file ", tags$b(tmp_file1), ".")),
-      #                 duration = NULL, type = "message")
-      #return(read_sf(tmp_file1, quiet=TRUE))
-    #  showNotification(HTML("No file uploaded, leaving blank."),
-    #                   duration = NULL, type = "message")
-    #  return(NULL)
-    #}
     req(input$sf1)
     return(setup_read_sf(input$sf1))
   })
@@ -359,8 +348,8 @@ server <- function(input, output) {
     change_df <- changeData()
     
     ggplot(change_df) + 
-      geom_bar(aes(x="open", y = open, fill = id), position = "stack", stat="identity") +
-      geom_bar(aes(x="close", y = close, fill = id), position = "stack", stat="identity") +
+      geom_bar(aes(x = "open", y = open, fill = id), position = "stack", stat="identity") +
+      geom_bar(aes(x = "close", y = close, fill = id), position = "stack", stat="identity") +
       ggtitle("Habitat composition") +
       ylab("Area (Ha)") +
       xlab("") + theme_classic()
@@ -370,7 +359,7 @@ server <- function(input, output) {
     change_df <- changeData()
     
     ggplot(change_df) + 
-      geom_bar(aes(x=id, y=change, fill = id), stat="identity") +
+      geom_bar(aes(x = id, y = change, fill = id), stat = "identity") +
       coord_flip() +
       ggtitle("Ecosystem type net changes") +
       ylab("Area change (Ha)") +
