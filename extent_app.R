@@ -377,22 +377,21 @@ server <- function(input, output) {
       xlab("") + theme_classic()
   })
   
-  output$plotMap1 <- renderPlot({
+  plot_extent <- function(data, col, name){
     ggplot() +
-      geom_sf(data = sf1(), aes(fill=.data[[input$map1_sel_col]]), color=NA) +
-      labs(title = get_sf_name(input$sf1$name),
+      geom_sf(data = data, aes(fill=.data[[col]]), color=NA) +
+      labs(title = get_sf_name(name),
            fill = "Ecosystem Type") + 
       theme_bw() + 
       coord_sf(crs = "EPSG:4326")
+  }
+  
+  output$plotMap1 <- renderPlot({
+    return(plot_extent(sf1(), input$map1_sel_col, input$sf1$name))
   })
   
   output$plotMap2 <- renderPlot({
-    ggplot() +
-      geom_sf(data = sf2(), aes(fill=.data[[input$map2_sel_col]]), color=NA) +
-      labs(title = get_sf_name(input$sf2$name),
-           fill = "Ecosystem Type") + 
-      theme_bw() + 
-      coord_sf(crs = "EPSG:4326")
+    return(plot_extent(sf2(), input$map2_sel_col, input$sf2$name))
   })
   
   output$habitatExplorer <- renderUI({
@@ -410,9 +409,9 @@ server <- function(input, output) {
     df  <- changeData()
     val <- df[, col]
     exp_df <- data.frame(code   = df$id,
-                          aream2 = val * 10^4,
-                          areaha = val,
-                          perc   = val/sum(val))
+                         aream2 = val * 10^4,
+                         areaha = val,
+                         perc   = val/sum(val))
     colnames(exp_df) <- c("Code", "Area (m<sup>2</sup>)", "Area (Ha)", "% Coverage")
     return(exp_df)
   }
