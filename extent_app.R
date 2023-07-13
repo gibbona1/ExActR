@@ -130,6 +130,8 @@ server <- function(input, output) {
       return(0)
     return(x)
   }
+  
+  clean_sum <- function(x) x %>% st_area() %>% as.numeric() %>% blank_zero() %>% sum()
 
   #this gets the aggregate changes in each group
   #(start and end areas, and amount increased, decreased, changed)
@@ -138,13 +140,10 @@ server <- function(input, output) {
     sf2_sub <- filter(sf2, sf2[[input$map2_sel_col]] == grp)
 
     int_area <- sf1_sub %>%
-      st_intersection(sf2_sub) %>%
-      st_area() %>% as.numeric() %>% blank_zero() %>% sum()
+      st_intersection(sf2_sub) %>% clean_sum()
 
-    opening_A <- sf1_sub %>% st_area() %>%
-      as.numeric() %>% blank_zero() %>% sum()
-    closing_A <- sf2_sub %>% st_area() %>%
-      as.numeric() %>% blank_zero() %>% sum()
+    opening_A <- sf1_sub %>% clean_sum()
+    closing_A <- sf2_sub %>% clean_sum()
     
     res <- list(
       "opening"    = opening_A / 10 ^ 4,
@@ -302,12 +301,7 @@ server <- function(input, output) {
     cross_area <- function(grp1, grp2) {
       df1_sub <- filter(df1, df1[[input$map1_sel_col]] == grp1)
       df2_sub <- filter(df2, df2[[input$map2_sel_col]] == grp2)
-      df1_sub %>%
-        st_intersection(df2_sub) %>%
-        st_area() %>%
-        as.numeric() %>%
-        blank_zero() %>%
-        sum()
+      df1_sub %>% st_intersection(df2_sub) %>% clean_sum()
     }
 
     cross_mat <- do.call(rbind, lapply(code_grps, function(grp1) {
@@ -343,9 +337,7 @@ server <- function(input, output) {
   })
   
   output$plotComp <- renderPlot({
-    change_df <- changeData()
-    
-    ggplot(change_df) + 
+    ggplot(changeData()) + 
       geom_bar(aes(x = "open", y = open, fill = id), position = "stack", stat="identity") +
       geom_bar(aes(x = "close", y = close, fill = id), position = "stack", stat="identity") +
       ggtitle("Habitat composition") +
@@ -354,9 +346,7 @@ server <- function(input, output) {
   })
   
   output$plotStack <- renderPlot({
-    change_df <- changeData()
-    
-    ggplot(change_df) + 
+    ggplot(changeData()) + 
       geom_bar(aes(x = id, y = change, fill = id), stat = "identity") +
       coord_flip() +
       ggtitle("Ecosystem type net changes") +
