@@ -112,15 +112,12 @@ server <- function(input, output) {
 
   #function to read the .shp file and project to the desired coordinate system
   setup_read_sf <- function(shpdf) {
-    previouswd <- getwd()
-    uploaddirectory <- dirname(shpdf$datapath[1])
-    setwd(uploaddirectory)
+    updir <- dirname(shpdf$datapath[1])
     for(i in seq_len(nrow(shpdf))){
-      file.rename(shpdf$datapath[i], shpdf$name[i])
+      file.rename(shpdf$datapath[i], file.path(updir, shpdf$name[i]))
     }
-    setwd(previouswd)
 
-    tmp_file1 <- paste(uploaddirectory, shpdf$name[grep(pattern="*.shp$", shpdf$name)], sep="/")
+    tmp_file1 <- file.path(updir, shpdf$name[grep(pattern="*.shp$", shpdf$name)])
     return(st_read(tmp_file1, quiet=TRUE) %>% st_transform("EPSG:4326"))
   }
 
@@ -139,9 +136,7 @@ server <- function(input, output) {
     sf1_sub <- filter(sf1, sf1[[input$map1_sel_col]] == grp)
     sf2_sub <- filter(sf2, sf2[[input$map2_sel_col]] == grp)
 
-    int_area <- sf1_sub %>%
-      st_intersection(sf2_sub) %>% clean_sum()
-
+    int_area  <- st_intersection(sf1_sub, sf2_sub) %>% clean_sum()
     opening_A <- sf1_sub %>% clean_sum()
     closing_A <- sf2_sub %>% clean_sum()
     
@@ -301,7 +296,7 @@ server <- function(input, output) {
     cross_area <- function(grp1, grp2) {
       df1_sub <- filter(df1, df1[[input$map1_sel_col]] == grp1)
       df2_sub <- filter(df2, df2[[input$map2_sel_col]] == grp2)
-      df1_sub %>% st_intersection(df2_sub) %>% clean_sum()
+      st_intersection(df1_sub, df2_sub) %>% clean_sum()
     }
 
     cross_mat <- do.call(rbind, lapply(code_grps, function(grp1) {
