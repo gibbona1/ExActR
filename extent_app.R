@@ -406,24 +406,23 @@ server <- function(input, output) {
     )
   })
   
+  get_explore_table <- function(col){
+    df  <- changeData()
+    val <- df[, col]
+    exp_df <- data.frame(code   = df$id,
+                          aream2 = val * 10^4,
+                          areaha = val,
+                          perc   = val/sum(val))
+    colnames(exp_df) <- c("Code", "Area (m<sup>2</sup>)", "Area (Ha)", "% Coverage")
+    return(exp_df)
+  }
+  
   output$openingExpTable <- renderTable({
-    df <- changeData()
-    open_df <- data.frame(code   = df$id,
-                          aream2 = df$open*10^4,
-                          areaha = df$open,
-                          perc   = df$open/sum(df$open))
-    colnames(open_df) <- c("Code", "Area (m<sup>2</sup>)", "Area (Ha)", "% Coverage")
-    return(open_df)
+    return(get_explore_table("open"))
   }, sanitize.text.function = function(x) x)
   
   output$closingExpTable <- renderTable({
-    df <- changeData()
-    close_df <- data.frame(code   = df$id,
-                           aream2 = df$close*10^4,
-                           areaha = df$close,
-                           perc   = df$close/sum(df$close))
-    colnames(close_df) <- c("Code", "Area (m<sup>2</sup>)", "Area (Ha)", "% Coverage")
-    return(close_df)
+    return(get_explore_table("close"))
   }, sanitize.text.function = function(x) x)
 }
 
