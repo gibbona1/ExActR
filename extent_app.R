@@ -133,7 +133,7 @@ server <- function(input, output) {
 
   #this gets the aggregate changes in each group
   #(start and end areas, and amount increased, decreased, changed)
-  change_area <- function(sf1, sf2, grp) {
+  change_area <- function(grp, sf1, sf2) {
     sf1_sub <- filter(sf1, sf1[[input$map1_sel_col]] == grp)
     sf2_sub <- filter(sf2, sf2[[input$map2_sel_col]] == grp)
 
@@ -152,7 +152,7 @@ server <- function(input, output) {
       "decrease"   = -1*(opening_A - int_area) / 10 ^ 4,
       "net change" = -1*(opening_A - closing_A) / 10 ^ 4,
       "closing"    = closing_A / 10 ^ 4)
-    return(res)
+    return(lazy_unlist(res))
   }
 
   #maps are very similar so just pass to a function the data and which column to colour by
@@ -255,9 +255,7 @@ server <- function(input, output) {
     req(input$map1_sel_col, input$map2_sel_col)
 
     #get the opening, closing, changes for each code, extract to list of vectors
-    extent_mat <- sapply(codeGroups(), function(grp) {
-      lazy_unlist(change_area(sf1(), sf2(), grp))
-      })
+    extent_mat <- suppressWarnings(sapply(codeGroups(), change_area, sf1(), sf2()))
 
     return(as.data.frame(extent_mat))
   })
