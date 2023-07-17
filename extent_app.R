@@ -62,7 +62,12 @@ uifunc <- function() {
                h3("Closing Map"),
                leafletOutput("plot2"),
                uiOutput("map2col")
-        )
+        ),
+      ),
+      fluidRow(
+        column(12,
+        actionButton("gen_extent", "Generate/Refresh Extent", class = "btn-primary"),
+        align = "center")
       ),
       fluidRow(
         tags$script(src = "copytable.js"),
@@ -264,6 +269,7 @@ server <- function(input, output) {
   })
 
   output$extentTable <- renderTable({
+    req(input$gen_extent)
     if(is.null(input$sf1) | is.null(input$sf2))
       return(NULL)
     extent_df       <- extentData()
@@ -273,6 +279,7 @@ server <- function(input, output) {
 
   #the change portions can be represented as a percent of the opening
   output$extentPercentTable <- renderTable({
+    req(input$gen_extent)
     if(is.null(input$sf1) | is.null(input$sf2))
       return(NULL)
     extent_df  <- extentData()
@@ -316,6 +323,7 @@ server <- function(input, output) {
   })
 
   output$extentMatrix <- renderTable({
+    req(input$gen_extent)
     extentMat()
   }, rownames = TRUE)
   
