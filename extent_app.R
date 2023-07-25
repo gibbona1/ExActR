@@ -144,21 +144,16 @@ server <- function(input, output) {
 
   #this gets the aggregate changes in each group
   #(start and end areas, and amount increased, decreased, changed)
-  change_area <- function(grp, sf1, sf2) {
-    sf1_sub <- filter(sf1, (sf1[[input$map1_sel_col]] %>% grouping_col) == grp)
-    sf2_sub <- filter(sf2, (sf2[[input$map2_sel_col]] %>% grouping_col) == grp)
-
-    int_area  <- st_intersection(sf1_sub, sf2_sub) %>% clean_sum()
-    opening_A <- sf1_sub %>% clean_sum()
-    closing_A <- sf2_sub %>% clean_sum()
-    
-    res <- list(
-      "opening"    = opening_A / 10 ^ 4,
-      "increase"   = (closing_A - int_area) / 10 ^ 4,
-      "decrease"   = -1*(opening_A - int_area) / 10 ^ 4,
-      "net change" = -1*(opening_A - closing_A) / 10 ^ 4,
-      "closing"    = closing_A / 10 ^ 4)
-    return(lazy_unlist(res))
+  change_area <- function(grp, ext_mat){
+    opening_A <- ext_mat[grp, "openings"]
+    closing_A <- ext_mat["closings", grp]
+    unchanged_A <- ext_mat[grp,grp]
+    c(
+      "opening"    = opening_A,
+      "increase"   = sum(ext_mat[,grp]) - closing_A - unchanged_A,
+      "decrease"   = -1*(sum(ext_mat[grp,]) - opening_A - unchanged_A),
+      "net change" = -1*(opening_A - closing_A),
+      "closing"    = closing_A)
   }
 
   #maps are very similar so just pass to a function the data and which column to colour by
@@ -279,11 +274,9 @@ server <- function(input, output) {
 
   extentData <- reactive({
     req(input$map1_sel_col, input$map2_sel_col)
-
-    #get the opening, closing, changes for each code, extract to list of vectors
-    extent_mat <- suppressWarnings(sapply(codeGroups(), change_area, sf1(), sf2()))
-
-    return(as.data.frame(extent_mat))
+    
+    #get opening, closing, changes for each code  from extent change matrix
+    return(as.data.frame(sapply(codeGroups(), change_area, extentMat())))
   })
   
   changeData <- reactive({
