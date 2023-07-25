@@ -166,13 +166,13 @@ server <- function(input, output) {
     pl <- leaflet() %>%
       addTiles() %>%
       addPolygons(data         = data,
-                  fillColor    = plotCols()(grouping_col(data[[column]])),
+                  fillColor    = plotCols()(code_lookup(data[[column]])),
                   fillOpacity  = 0.7,
                   color        = "#b2aeae", #boundary colour, need to use hex color codes.
                   weight       = 0.5,
                   smoothFactor = 0.2) %>%
       addLegend(pal      = plotCols(),
-                values   = grouping_col(data[[column]]),
+                values   = code_lookup(data[[column]]),
                 position = "bottomleft",
                 title    = "Code <br>")
     return(pl)
@@ -193,17 +193,12 @@ server <- function(input, output) {
   })
 
   lookupData <- reactive({
-    if(!is.null(input$lookupFile))
-      return(read.csv(input$lookupFile$datapath))
-    else
-      return(read.csv(lookup_file))
+    ifelse(is.null(input$lookupFile), lookup_file, input$lookupFile$datapath) %>%
+      read.csv
   })
   
   output$lookup_file <- renderText({
-    if(!is.null(input$lookupFile))
-      return(input$lookupFile$name)
-    else
-      return(lookup_file)
+    return(ifelse(is.null(input$lookupFile), lookup_file, input$lookupFile$name))
   })
   
   #UI with dropdown for grouping of the datasets e.g. habitat codes
@@ -237,7 +232,7 @@ server <- function(input, output) {
 
   plot2Wait <- reactive({is.null(input$sf2) | is.null(input$map2_sel_col)})
   
-  grouping_col <- function(vec){
+  code_lookup <- function(vec){
     if(input$use_codes){
       code_df <- lookupData()
       check_codedf <- function(x)
@@ -252,9 +247,9 @@ server <- function(input, output) {
   codeGroups <- reactive({
     cols <- c()
     if(!plot1Wait())
-      cols <- union(cols, grouping_col(sf1()[[input$map1_sel_col]]))
+      cols <- union(cols, code_lookup(sf1()[[input$map1_sel_col]]))
     if(!plot2Wait())
-      cols <- union(cols, grouping_col(sf2()[[input$map2_sel_col]]))
+      cols <- union(cols, code_lookup(sf2()[[input$map2_sel_col]]))
     return(cols)
   })
 
@@ -333,8 +328,8 @@ server <- function(input, output) {
     code_grps <- codeGroups()
 
     cross_area <- function(grp1, grp2) {
-      df1_sub <- filter(df1, (df1[[input$map1_sel_col]] %>% grouping_col) == grp1)
-      df2_sub <- filter(df2, (df2[[input$map2_sel_col]] %>% grouping_col) == grp2)
+      df1_sub <- filter(df1, (df1[[input$map1_sel_col]] %>% code_lookup) == grp1)
+      df2_sub <- filter(df2, (df2[[input$map2_sel_col]] %>% code_lookup) == grp2)
       st_intersection(df1_sub, df2_sub) %>% clean_sum()
     }
 
@@ -372,7 +367,7 @@ server <- function(input, output) {
   })
   
   output$plotComp <- renderPlot({
-    changeData() %>% mutate(id = grouping_col(id)) %>%
+    changeData() %>% mutate(id = code_lookup(id)) %>%
       ggplot() + 
       geom_bar(aes(x = "open", y = open, fill = id), position = "stack", stat="identity") +
       geom_bar(aes(x = "close", y = close, fill = id), position = "stack", stat="identity") +
@@ -382,7 +377,7 @@ server <- function(input, output) {
   })
   
   output$plotStack <- renderPlot({
-    changeData() %>% mutate(id = grouping_col(id)) %>%
+    changeData() %>% mutate(id = code_lookup(id)) %>%
       ggplot() + 
       geom_bar(aes(x = id, y = change, fill = id), stat = "identity") +
       coord_flip() +
@@ -392,8 +387,8 @@ server <- function(input, output) {
   })
   
   plot_extent <- function(data, col, name){
-    ggplot() +
-      geom_sf(data = data, aes(fill=grouping_col(.data[[col]])), color=NA) +
+    ggplot(data, aes(fill = code_lookup(.data[[col]]))) +
+      geom_sf(color = NA) +
       labs(title = get_sf_name(name),
            fill = "Ecosystem Type") + 
       theme_bw() + 
