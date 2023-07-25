@@ -9,6 +9,8 @@ library(ggplot2)
 #so the map knows where to put itself
 map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
 
+code_df <- read.csv("habitat_codes.csv")
+
 bold_rownames <- function(el) {
   tags$style(paste0("#", el, " td:first-child { font-weight: bold; }"))
 }
@@ -67,6 +69,7 @@ uifunc <- function() {
       fluidRow(
         column(12,
         actionButton("gen_extent", "Generate/Refresh Extent", class = "btn-primary"),
+        checkboxInput("use_codes", "Use habitat code lookup", value = FALSE),
         align = "center")
       ),
       fluidRow(
@@ -165,7 +168,7 @@ server <- function(input, output) {
                   weight       = 0.5,
                   smoothFactor = 0.2) %>%
       addLegend(pal      = plotCols(),
-                values   = data[[column]],
+                values   = grouping_col(data[[column]]),
                 position = "bottomleft",
                 title    = "Code <br>")
     return(pl)
@@ -215,14 +218,24 @@ server <- function(input, output) {
   plot1Wait <- reactive({is.null(input$sf1) | is.null(input$map1_sel_col)})
 
   plot2Wait <- reactive({is.null(input$sf2) | is.null(input$map2_sel_col)})
+  
+  grouping_col <- function(vec){
+    if(input$use_codes){
+      check_codedf <- function(x)
+        ifelse(x %in% code_df$Code, code_df[code_df$Code == x, 2], x)
+      return(sapply(vec, check_codedf))
+    } else {
+      return(vec)
+    }
+  }
 
   #groups to iterate over for extent account
   codeGroups <- reactive({
     cols <- c()
     if(!plot1Wait())
-      cols <- union(cols, sf1()[[input$map1_sel_col]])
+      cols <- union(cols, grouping_col(sf1()[[input$map1_sel_col]]))
     if(!plot2Wait())
-      cols <- union(cols, sf2()[[input$map2_sel_col]])
+      cols <- union(cols, grouping_col(sf2()[[input$map2_sel_col]]))
     return(cols)
   })
 
