@@ -162,7 +162,7 @@ server <- function(input, output) {
     pl <- leaflet() %>%
       addTiles() %>%
       addPolygons(data         = data,
-                  fillColor    = plotCols()(data[[column]]),
+                  fillColor    = plotCols()(grouping_col(data[[column]])),
                   fillOpacity  = 0.7,
                   color        = "#b2aeae", #boundary colour, need to use hex color codes.
                   weight       = 0.5,
@@ -222,7 +222,7 @@ server <- function(input, output) {
   grouping_col <- function(vec){
     if(input$use_codes){
       check_codedf <- function(x)
-        ifelse(x %in% code_df$Code, code_df[code_df$Code == x, 2], x)
+        ifelse(x %in% code_df$Code, paste(x, "-", code_df[code_df$Code == x, 2]), x)
       return(sapply(vec, check_codedf))
     } else {
       return(vec)
