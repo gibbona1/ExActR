@@ -36,22 +36,20 @@ uifunc <- function() {
     tabsetPanel(
       {tabPanel("Extent Account",
       fluidRow(
-        column(4,
+        column(6,
                fileInput("sf1", "Upload Opening Map",
                          accept   = map_accepts,
                          multiple = TRUE),
                tags$style("white-space: pre-wrap;"),
                verbatimTextOutput("sf1_name")
                ),
-        column(4, align = "center", br(),
-               #actionButton("extent", "Generate Extent")
-               ),
-        column(4,
+        column(6,
                fileInput("sf2", "Upload Closing Map",
                          accept   = map_accepts,
                          multiple = TRUE),
                tags$style("white-space: pre-wrap;"),
-               verbatimTextOutput("sf2_name")
+               verbatimTextOutput("sf2_name"),
+               align = "right"
                )
       ),
       fluidRow(
