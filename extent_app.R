@@ -9,7 +9,7 @@ library(ggplot2)
 #so the map knows where to put itself
 map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
 
-code_df <- read.csv("habitat_codes.csv")
+lookup_file <- "habitat_codes.csv"
 
 bold_rownames <- function(el) {
   tags$style(paste0("#", el, " td:first-child { font-weight: bold; }"))
@@ -67,9 +67,14 @@ uifunc <- function() {
         ),
       ),
       fluidRow(
+        tags$table(style = "width: 100%",
+                   tags$tr(tags$td(fileInput("lookupFile", "Upload Lookup table", accept = ".csv")),
+                           tags$td(verbatimTextOutput("lookup_file")),
+                           tags$td(align="right", padding="10%", checkboxInput("use_codes", "Use habitat code lookup", value = FALSE))),
+        )),
+      fluidRow(
         column(12,
-        actionButton("gen_extent", "Generate/Refresh Extent", class = "btn-primary"),
-        checkboxInput("use_codes", "Use habitat code lookup", value = FALSE),
+        actionButton("gen_extent", "Generate/Refresh Extent", class = "btn-primary"),        
         align = "center")
       ),
       fluidRow(
@@ -188,6 +193,20 @@ server <- function(input, output) {
     return(setup_read_sf(input$sf2))
   })
 
+  lookupData <- reactive({
+    if(!is.null(input$lookupFile))
+      return(read.csv(input$lookupFile$datapath))
+    else
+      return(read.csv(lookup_file))
+  })
+  
+  output$lookup_file <- renderText({
+    if(!is.null(input$lookupFile))
+      return(input$lookupFile$name)
+    else
+      return(lookup_file)
+  })
+  
   #UI with dropdown for grouping of the datasets e.g. habitat codes
   output$map1col <- renderUI({
     req(input$sf1)
@@ -221,6 +240,7 @@ server <- function(input, output) {
   
   grouping_col <- function(vec){
     if(input$use_codes){
+      code_df <- lookupData()
       check_codedf <- function(x)
         ifelse(x %in% code_df$Code, paste(x, "-", code_df[code_df$Code == x, 2]), x)
       return(sapply(vec, check_codedf))
