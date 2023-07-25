@@ -68,10 +68,11 @@ uifunc <- function() {
       ),
       fluidRow(
         tags$table(style = "width: 100%",
-                   tags$tr(tags$td(fileInput("lookupFile", "Upload Lookup table", accept = ".csv")),
-                           tags$td(verbatimTextOutput("lookup_file")),
-                           tags$td(align="right", padding="10%", checkboxInput("use_codes", "Use habitat code lookup", value = FALSE))),
-        )),
+           tags$tr(tags$td(fileInput("lookupFile", "Upload Lookup table", accept = ".csv")),
+                   tags$td(verbatimTextOutput("lookup_file")),
+                   tags$td(align="right", padding="10%", 
+                           checkboxInput("use_codes", "Use habitat code lookup", value = FALSE))),
+           )),
       fluidRow(
         column(12,
         actionButton("gen_extent", "Generate/Refresh Extent", class = "btn-primary"),        
@@ -146,8 +147,8 @@ server <- function(input, output) {
   #this gets the aggregate changes in each group
   #(start and end areas, and amount increased, decreased, changed)
   change_area <- function(grp, sf1, sf2) {
-    sf1_sub <- filter(sf1, sf1[[input$map1_sel_col]] == grp)
-    sf2_sub <- filter(sf2, sf2[[input$map2_sel_col]] == grp)
+    sf1_sub <- filter(sf1, (sf1[[input$map1_sel_col]] %>% grouping_col) == grp)
+    sf2_sub <- filter(sf2, (sf2[[input$map2_sel_col]] %>% grouping_col) == grp)
 
     int_area  <- st_intersection(sf1_sub, sf2_sub) %>% clean_sum()
     opening_A <- sf1_sub %>% clean_sum()
@@ -334,8 +335,8 @@ server <- function(input, output) {
     code_grps <- codeGroups()
 
     cross_area <- function(grp1, grp2) {
-      df1_sub <- filter(df1, df1[[input$map1_sel_col]] == grp1)
-      df2_sub <- filter(df2, df2[[input$map2_sel_col]] == grp2)
+      df1_sub <- filter(df1, (df1[[input$map1_sel_col]] %>% grouping_col) == grp1)
+      df2_sub <- filter(df2, (df2[[input$map2_sel_col]] %>% grouping_col) == grp2)
       st_intersection(df1_sub, df2_sub) %>% clean_sum()
     }
 
@@ -373,7 +374,8 @@ server <- function(input, output) {
   })
   
   output$plotComp <- renderPlot({
-    ggplot(changeData()) + 
+    changeData() %>% mutate(id = grouping_col(id)) %>%
+      ggplot() + 
       geom_bar(aes(x = "open", y = open, fill = id), position = "stack", stat="identity") +
       geom_bar(aes(x = "close", y = close, fill = id), position = "stack", stat="identity") +
       ggtitle("Habitat composition") +
@@ -382,7 +384,8 @@ server <- function(input, output) {
   })
   
   output$plotStack <- renderPlot({
-    ggplot(changeData()) + 
+    changeData() %>% mutate(id = grouping_col(id)) %>%
+      ggplot() + 
       geom_bar(aes(x = id, y = change, fill = id), stat = "identity") +
       coord_flip() +
       ggtitle("Ecosystem type net changes") +
@@ -392,7 +395,7 @@ server <- function(input, output) {
   
   plot_extent <- function(data, col, name){
     ggplot() +
-      geom_sf(data = data, aes(fill=.data[[col]]), color=NA) +
+      geom_sf(data = data, aes(fill=grouping_col(.data[[col]])), color=NA) +
       labs(title = get_sf_name(name),
            fill = "Ecosystem Type") + 
       theme_bw() + 
