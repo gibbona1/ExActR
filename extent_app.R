@@ -234,7 +234,7 @@ server <- function(input, output) {
         ifelse(x %in% df[, 1], paste(x, "-", df[df[, 1] == x, 2]), x)
       return(sapply(vec, check_codedf))
     } else {
-      return(vec)
+      return(vec %>% as.character())
     }
   }
 
