@@ -29,6 +29,31 @@ copy_button_group <- function(id){
   )
 }
 
+sfInput <- function(name, lab){
+  column(6,
+    fileInput(name, lab, accept = map_accepts, multiple = TRUE),
+    tags$style("white-space: pre-wrap;"),
+    verbatimTextOutput(paste(name, "name", sep = "_")),
+    align = ifelse(name == "sf1", "left", "right")
+    )
+}
+
+sfMapOutput <- function(name, id){
+  column(6,
+         h3(paste(name, "Map")),
+         leafletOutput(paste0("plot", id)),
+         uiOutput(paste0("map", id, "col"))
+  )
+}
+
+extentObj <- function(id){
+  wellPanel(
+    bold_rownames(id),
+    tableOutput(id),
+    copy_button_group(id)
+  )
+}
+
 uifunc <- function() {
   fluidPage(
     useShinyjs(),
@@ -36,33 +61,12 @@ uifunc <- function() {
     tabsetPanel(
       {tabPanel("Extent Account",
       fluidRow(
-        column(6,
-               fileInput("sf1", "Upload Opening Map",
-                         accept   = map_accepts,
-                         multiple = TRUE),
-               tags$style("white-space: pre-wrap;"),
-               verbatimTextOutput("sf1_name")
-               ),
-        column(6,
-               fileInput("sf2", "Upload Closing Map",
-                         accept   = map_accepts,
-                         multiple = TRUE),
-               tags$style("white-space: pre-wrap;"),
-               verbatimTextOutput("sf2_name"),
-               align = "right"
-               )
+        sfInput("sf1", "Upload Opening Map"),
+        sfInput("sf2", "Upload Closing Map"),
       ),
       fluidRow(
-        column(6,
-               h3("Opening Map"),
-               leafletOutput("plot1"),
-               uiOutput("map1col")
-        ),
-        column(6,
-               h3("Closing Map"),
-               leafletOutput("plot2"),
-               uiOutput("map2col")
-        ),
+        sfMapOutput("Opening", 1),
+        sfMapOutput("Closing", 2)
       ),
       fluidRow(
         tags$table(style = "width: 100%",
@@ -79,23 +83,11 @@ uifunc <- function() {
       fluidRow(
         tags$script(src = "copytable.js"),
         h3("Extent table (Ha)"),
-        bold_rownames("extentTable"),
-        wellPanel(
-          tableOutput("extentTable"),
-          copy_button_group("extentTable")
-        ),
+        extentObj("extentTable"),
         h3("Extent table (% of opening)"),
-        bold_rownames("extentPercentTable"), 
-        wellPanel(
-          tableOutput("extentPercentTable"),
-          copy_button_group("extentPercentTable")
-        ),
+        extentObj("extentPercentTable"),
         h3("Ecosystem Type Change Matrix"),
-        bold_rownames("extentMatrix"),
-        wellPanel(
-          tableOutput("extentMatrix"),
-          copy_button_group("extentMatrix")
-        ),
+        extentObj("extentMatrix"),
         hr(),
         wellPanel(
           style = "background: lightblue;",
