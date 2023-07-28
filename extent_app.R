@@ -137,10 +137,10 @@ server <- function(input, output) {
   blank_zero <- function(x) {
     if(length(x) == 0)
       return(0)
-    return(x)
+    return(as.numeric(x))
   }
   
-  clean_sum <- function(x) x %>% st_area() %>% as.numeric() %>% blank_zero() %>% sum()
+  clean_sum <- function(x) x %>% st_area() %>% blank_zero() %>% sum()
 
   #this gets the aggregate changes in each group
   #(start and end areas, and amount increased, decreased, changed)
@@ -152,7 +152,7 @@ server <- function(input, output) {
       "opening"    = opening_A,
       "increase"   = sum(ext_mat[,grp]) - closing_A - unchanged_A,
       "decrease"   = -1*(sum(ext_mat[grp,]) - opening_A - unchanged_A),
-      "net change" = -1*(opening_A - closing_A),
+      "net change" = closing_A - opening_A,
       "closing"    = closing_A)
   }
 
@@ -229,9 +229,9 @@ server <- function(input, output) {
   
   code_lookup <- function(vec){
     if(input$use_codes){
-      code_df <- lookupData()
+      df <- lookupData()
       check_codedf <- function(x)
-        ifelse(x %in% code_df$Code, paste(x, "-", code_df[code_df$Code == x, 2]), x)
+        ifelse(x %in% df[, 1], paste(x, "-", df[df[, 1] == x, 2]), x)
       return(sapply(vec, check_codedf))
     } else {
       return(vec)
@@ -359,11 +359,14 @@ server <- function(input, output) {
     )
   })
   
+  geom_bar_stack <- function(mapping=NULL)
+    geom_bar(mapping, position = "stack", stat = "identity")
+  
   output$plotComp <- renderPlot({
     changeData() %>% mutate(id = code_lookup(id)) %>%
       ggplot() + 
-      geom_bar(aes(x = "open", y = open, fill = id), position = "stack", stat="identity") +
-      geom_bar(aes(x = "close", y = close, fill = id), position = "stack", stat="identity") +
+      geom_bar_stack(aes(x = "open", y = open, fill = id)) +
+      geom_bar_stack(aes(x = "close", y = close, fill = id)) +
       ggtitle("Habitat composition") +
       ylab("Area (Ha)") +
       xlab("") + theme_classic()
@@ -407,8 +410,7 @@ server <- function(input, output) {
     )
   })
   
-  get_explore_table <- function(col){
-    df  <- changeData()
+  get_explore_table <- function(col, df){
     val <- df[, col]
     exp_df <- data.frame(code   = df$id,
                          aream2 = val * 10^4,
@@ -419,11 +421,11 @@ server <- function(input, output) {
   }
   
   output$openingExpTable <- renderTable({
-    return(get_explore_table("open"))
+    return(get_explore_table("open", changeData()))
   }, sanitize.text.function = function(x) x)
   
   output$closingExpTable <- renderTable({
-    return(get_explore_table("close"))
+    return(get_explore_table("close", changeData()))
   }, sanitize.text.function = function(x) x)
 }
 
