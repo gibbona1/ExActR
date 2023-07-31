@@ -50,7 +50,7 @@ extentObj <- function(id){
   wellPanel(
     bold_rownames(id),
     tableOutput(id),
-    copy_button_group(id)
+    uiOutput(paste0("copybttn_", id))
   )
 }
 
@@ -351,6 +351,18 @@ server <- function(input, output) {
       plotOutput("plotMap1"),
       plotOutput("plotMap2")
     )
+  })
+  
+  observeEvent(input$gen_extent, {
+    render_copybttns <- function(id){
+      if(input$gen_extent)
+        return(copy_button_group(id))
+      else
+        return(NULL)
+      }
+    output$copybttn_extentTable <- renderUI({render_copybttns("extentTable")})
+    output$copybttn_extentPercentTable <- renderUI({render_copybttns("extentPercentTable")})
+    output$copybttn_extentMatrix <- renderUI({render_copybttns("extentMatrix")})
   })
   
   geom_bar_stack <- function(mapping=NULL)
