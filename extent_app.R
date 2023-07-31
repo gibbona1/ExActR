@@ -54,6 +54,8 @@ extentObj <- function(id){
   )
 }
 
+ctd <- function(el, align = "left") tags$td(align = align, el)
+
 uifunc <- function() {
   fluidPage(
     useShinyjs(),
@@ -70,10 +72,10 @@ uifunc <- function() {
       ),
       fluidRow(
         tags$table(style = "width: 100%",
-           tags$tr(tags$td(fileInput("lookupFile", "Upload Lookup table", accept = ".csv")),
-                   tags$td(verbatimTextOutput("lookup_file")),
-                   tags$td(align="right", padding="10%", 
-                           checkboxInput("use_codes", "Use habitat code lookup", value = FALSE))),
+           tags$tr(ctd(fileInput("lookupFile", "Upload Lookup table", accept = ".csv")),
+                   ctd(verbatimTextOutput("lookup_file")),
+                   ctd(align = "right", 
+                       checkboxInput("use_codes", "Use code lookup", value = FALSE))),
            )),
       fluidRow(
         column(12,
