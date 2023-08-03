@@ -11,6 +11,36 @@ map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
 
 lookup_file <- "habitat_codes.csv"
 
+get_img_js <- '
+async function getImageBlobFromUrl(url) {
+  const fetchedImageData = await fetch(url);
+  const blob = await fetchedImageData.blob();
+  return blob;
+}
+'
+
+img_copy_js <- function(copy_id, plot_id){
+  paste0('
+  $(document).ready(function () {
+    $("#', copy_id, '").on("click", async () => {
+      const src = $("#', plot_id, '>img").attr("src");
+      try {
+        const blob = await getImageBlobFromUrl(src);
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            [blob.type]: blob
+          })
+        ]);
+        alert("Image copied to clipboard!");
+      } catch (err) {
+        console.error(err.name, err.message);
+        alert("There was an error while copying image to clipboard :/");
+      }
+    });
+  });
+  ')
+}
+
 bold_rownames <- function(el) {
   tags$style(paste0("#", el, " td:first-child { font-weight: bold; }"))
 }
@@ -31,8 +61,9 @@ copy_button_group <- function(id){
 
 plot_copy_group <- function(id){
   wellPanel(
+    tags$script(HTML(img_copy_js(paste0("copy_", id), id))),
     plotOutput(id),
-    #actionButton(paste0("copy_", id)),
+    actionButton(paste0("copy_", id), "Copy", icon = icon("copy")),
     downloadButton(paste0("download_", id))
   )
 }
@@ -359,6 +390,9 @@ server <- function(input, output) {
       return(NULL)
     
     div(
+      tags$head(
+        tags$script(HTML(get_img_js))
+      ),
       plot_copy_group("plotComp"),
       plot_copy_group("plotStack"),
       plot_copy_group("plotMap1"),
