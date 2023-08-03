@@ -30,7 +30,7 @@ copy_button_group <- function(id){
 }
 
 plot_copy_group <- function(id){
-  div(
+  wellPanel(
     plotOutput(id),
     #actionButton(paste0("copy_", id)),
     downloadButton(paste0("download_", id))
@@ -378,21 +378,6 @@ server <- function(input, output) {
     output$copybttn_extentMatrix <- renderUI({render_copybttns("extentMatrix")})
   })
   
-  render_download_bttn <- function(id){
-    downloadHandler(
-      filename = function() {
-        paste0(id, '-', Sys.Date(), '.png')
-      },
-      content = function(con) {
-        ggsave(con, plots[[id]])
-      }
-    )
-  }
-  
-  output$download_plotComp  <- render_download_bttn("plotComp")
-  output$download_plotStack <- render_download_bttn("plotStack")
-  output$download_plotMap1  <- render_download_bttn("plotMap1")
-  output$download_plotMap2  <- render_download_bttn("plotMap2")
   
   geom_bar_stack <- function(mapping=NULL)
     geom_bar(mapping, position = "stack", stat = "identity")
@@ -439,6 +424,22 @@ server <- function(input, output) {
     p <- plots$plotMap2 <- plot_extent(sf2(), input$map2_sel_col, input$sf2$name)
     return(p)
   })
+  
+  render_download_bttn <- function(id){
+    downloadHandler(
+      filename = function() {
+        paste0(id, '-', Sys.Date(), '.png')
+      },
+      content = function(con) {
+        ggsave(con, plots[[id]])
+      }
+    )
+  }
+  
+  output$download_plotComp  <- render_download_bttn("plotComp")
+  output$download_plotStack <- render_download_bttn("plotStack")
+  output$download_plotMap1  <- render_download_bttn("plotMap1")
+  output$download_plotMap2  <- render_download_bttn("plotMap2")
   
   output$habitatExplorer <- renderUI({
     if(is.null(input$sf1) | is.null(input$sf2))
