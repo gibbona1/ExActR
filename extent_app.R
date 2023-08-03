@@ -29,6 +29,14 @@ copy_button_group <- function(id){
   )
 }
 
+plot_copy_group <- function(id){
+  div(
+    plotOutput(id),
+    #actionButton(paste0("copy_", id)),
+    downloadButton(paste0("download_", id))
+  )
+}
+
 sfInput <- function(name, lab){
   column(6,
     fileInput(name, lab, accept = map_accepts, multiple = TRUE),
@@ -115,6 +123,11 @@ uifunc <- function() {
 }
 
 server <- function(input, output) {
+  
+  plots <- reactiveValues(plotComp  = NULL,
+                          plotStack = NULL,
+                          plotMap1  = NULL,
+                          plotMap2  = NULL)
 
   #function to read the .shp file and project to the desired coordinate system
   setup_read_sf <- function(shpdf) {
@@ -345,11 +358,11 @@ server <- function(input, output) {
     if(is.null(input$sf1) | is.null(input$sf2))
       return(NULL)
     
-    wellPanel(
-      plotOutput("plotComp"),
-      plotOutput("plotStack"),
-      plotOutput("plotMap1"),
-      plotOutput("plotMap2")
+    div(
+      plot_copy_group("plotComp"),
+      plot_copy_group("plotStack"),
+      plot_copy_group("plotMap1"),
+      plot_copy_group("plotMap2")
     )
   })
   
@@ -365,27 +378,47 @@ server <- function(input, output) {
     output$copybttn_extentMatrix <- renderUI({render_copybttns("extentMatrix")})
   })
   
+  render_download_bttn <- function(id){
+    downloadHandler(
+      filename = function() {
+        paste0(id, '-', Sys.Date(), '.png')
+      },
+      content = function(con) {
+        ggsave(con, plots[[id]])
+      }
+    )
+  }
+  
+  output$download_plotComp  <- render_download_bttn("plotComp")
+  output$download_plotStack <- render_download_bttn("plotStack")
+  output$download_plotMap1  <- render_download_bttn("plotMap1")
+  output$download_plotMap2  <- render_download_bttn("plotMap2")
+  
   geom_bar_stack <- function(mapping=NULL)
     geom_bar(mapping, position = "stack", stat = "identity")
   
   output$plotComp <- renderPlot({
-    changeData() %>% mutate(id = code_lookup(id)) %>%
+    p <- plots$plotComp <- changeData() %>% 
+      mutate(id = code_lookup(id)) %>%
       ggplot() + 
       geom_bar_stack(aes(x = "open", y = open, fill = id)) +
       geom_bar_stack(aes(x = "close", y = close, fill = id)) +
       ggtitle("Habitat composition") +
       ylab("Area (Ha)") +
       xlab("") + theme_classic()
+    return(p)
   })
   
   output$plotStack <- renderPlot({
-    changeData() %>% mutate(id = code_lookup(id)) %>%
+    p <- plots$plotStack <-  changeData() %>% 
+      mutate(id = code_lookup(id)) %>%
       ggplot() + 
       geom_bar(aes(x = id, y = change, fill = id), stat = "identity") +
       coord_flip() +
       ggtitle("Ecosystem type net changes") +
       ylab("Area change (Ha)") +
       xlab("") + theme_classic()
+    return(p)
   })
   
   plot_extent <- function(data, col, name){
@@ -398,11 +431,13 @@ server <- function(input, output) {
   }
   
   output$plotMap1 <- renderPlot({
-    return(plot_extent(sf1(), input$map1_sel_col, input$sf1$name))
+    p <- plots$plotMap1 <- plot_extent(sf1(), input$map1_sel_col, input$sf1$name)
+    return(p)
   })
   
   output$plotMap2 <- renderPlot({
-    return(plot_extent(sf2(), input$map2_sel_col, input$sf2$name))
+    p <- plots$plotMap2 <- plot_extent(sf2(), input$map2_sel_col, input$sf2$name)
+    return(p)
   })
   
   output$habitatExplorer <- renderUI({
