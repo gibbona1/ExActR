@@ -111,7 +111,8 @@ uifunc <- function() {
         sfInput("sf2", "Upload Closing Map"),
       ),
       fluidRow(
-        selectInput("sel_crs", "Select CRS", choices = crs_list, selected = default_crs)
+        selectizeInput("sel_crs", "Select CRS", choices = crs_list, 
+                       selected = default_crs, width = "100%")
       ),
       fluidRow(
         sfMapOutput("Opening", 1),
