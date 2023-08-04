@@ -111,8 +111,7 @@ uifunc <- function() {
         sfInput("sf2", "Upload Closing Map"),
       ),
       fluidRow(
-        selectizeInput("sel_crs", "Select CRS", choices = crs_list, 
-                       selected = default_crs, width = "100%")
+        selectizeInput("sel_crs", "Select CRS", choices = NULL, width = "100%")
       ),
       fluidRow(
         sfMapOutput("Opening", 1),
@@ -162,12 +161,15 @@ uifunc <- function() {
   )
 }
 
-server <- function(input, output) {
+server <- function(input, output, session) {
   
   plots <- reactiveValues(plotComp  = NULL,
                           plotStack = NULL,
                           plotMap1  = NULL,
                           plotMap2  = NULL)
+  
+  updateSelectizeInput(session, "sel_crs", choices = crs_list, 
+                       selected = default_crs, server = TRUE)
 
   #function to read the .shp file and project to the desired coordinate system
   setup_read_sf <- function(shpdf) {
