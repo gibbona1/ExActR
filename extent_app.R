@@ -179,7 +179,7 @@ server <- function(input, output) {
     }
     
     tmp_file1 <- file.path(updir, shpdf$name[grep(pattern="*.shp$", shpdf$name)])
-    return(st_read(tmp_file1, quiet=TRUE) %>% st_transform(as.numeric(input$sel_crs)))
+    return(st_read(tmp_file1, quiet=TRUE))
   }
 
   #to avoid errors, if map intersections return NULLs, just return zero
@@ -226,14 +226,24 @@ server <- function(input, output) {
   lazy_unlist <- function(x) suppressWarnings(unlist(x))
 
   # Read shapefiles
-  sf1 <- reactive({
+  sf1Raw <- reactive({
     req(input$sf1)
     return(setup_read_sf(input$sf1))
   })
 
-  sf2 <- reactive({
+  sf2Raw <- reactive({
     req(input$sf2)
     return(setup_read_sf(input$sf2))
+  })
+  
+  sf1 <- reactive({
+    req(input$sf1)
+    return(sf1Raw() %>% st_transform(as.numeric(input$sel_crs)))
+  })
+  
+  sf2 <- reactive({
+    req(input$sf2)
+    return(sf2Raw() %>% st_transform(as.numeric(input$sel_crs)))
   })
 
   lookupData <- reactive({
@@ -248,12 +258,12 @@ server <- function(input, output) {
   #UI with dropdown for grouping of the datasets e.g. habitat codes
   output$map1col <- renderUI({
     req(input$sf1)
-    selectInput("map1_sel_col", "Select Grouping Column", choices = names(sf1()))
+    selectInput("map1_sel_col", "Select Grouping Column", choices = names(sf1Raw()))
   })
 
   output$map2col <- renderUI({
     req(input$sf2)
-    selectInput("map2_sel_col", "Select Grouping Column", choices = names(sf2()))
+    selectInput("map2_sel_col", "Select Grouping Column", choices = names(sf2Raw()))
   })
   
   get_sf_name <- function(x){
