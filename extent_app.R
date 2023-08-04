@@ -163,10 +163,10 @@ uifunc <- function() {
 
 server <- function(input, output, session) {
   
-  plots <- reactiveValues(plotComp  = NULL,
-                          plotStack = NULL,
-                          plotMap1  = NULL,
-                          plotMap2  = NULL)
+  plot_names <- c("plotComp", "plotStack", "plotMap1", "plotMap2")
+  plots <- reactiveValues()
+  for(plt in plot_names)
+    plots[[plt]]  <- NULL
   
   updateSelectizeInput(session, "sel_crs", choices = crs_list, 
                        selected = default_crs, server = TRUE)
@@ -416,10 +416,7 @@ server <- function(input, output, session) {
       tags$head(
         tags$script(HTML(get_img_js))
       ),
-      plot_copy_group("plotComp"),
-      plot_copy_group("plotStack"),
-      plot_copy_group("plotMap1"),
-      plot_copy_group("plotMap2")
+      tagList(lapply(plot_names, plot_copy_group))
     )
   })
   
@@ -484,19 +481,15 @@ server <- function(input, output, session) {
   
   render_download_bttn <- function(id){
     downloadHandler(
-      filename = function() {
-        paste0(id, '-', Sys.Date(), '.png')
-      },
-      content = function(con) {
-        ggsave(con, plots[[id]])
-      }
+      filename = function() paste0(id, '-', Sys.Date(), '.png'),
+      content  = function(con) ggsave(con, plots[[id]])
     )
   }
   
-  output$download_plotComp  <- render_download_bttn("plotComp")
-  output$download_plotStack <- render_download_bttn("plotStack")
-  output$download_plotMap1  <- render_download_bttn("plotMap1")
-  output$download_plotMap2  <- render_download_bttn("plotMap2")
+  observe({
+    for(plt in plot_names)
+      output[[paste0("download_", plt)]]  <- render_download_bttn(plt)
+  })
   
   output$habitatExplorer <- renderUI({
     if(is.null(input$sf1) | is.null(input$sf2))
