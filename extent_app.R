@@ -9,6 +9,11 @@ library(ggplot2)
 #so the map knows where to put itself
 map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
 
+crs_data <- suppressWarnings(rgdal::make_EPSG(file))
+crs_list <- crs_data$code
+names(crs_list) <- paste(paste0("EPSG:", crs_list), crs_data$note, sep = " - ")
+default_crs <- 4326
+
 lookup_file <- "habitat_codes.csv"
 
 get_img_js <- '
@@ -106,6 +111,9 @@ uifunc <- function() {
         sfInput("sf2", "Upload Closing Map"),
       ),
       fluidRow(
+        selectInput("sel_crs", "Select CRS", choices = crs_list, selected = default_crs)
+      ),
+      fluidRow(
         sfMapOutput("Opening", 1),
         sfMapOutput("Closing", 2)
       ),
@@ -164,11 +172,13 @@ server <- function(input, output) {
   setup_read_sf <- function(shpdf) {
     updir <- dirname(shpdf$datapath[1])
     for(i in seq_len(nrow(shpdf))){
-      file.rename(shpdf$datapath[i], file.path(updir, shpdf$name[i]))
+      renamed_file <- file.path(updir, shpdf$name[i])
+      if(!file.exists(renamed_file))
+        file.rename(shpdf$datapath[i], renamed_file)
     }
-
+    
     tmp_file1 <- file.path(updir, shpdf$name[grep(pattern="*.shp$", shpdf$name)])
-    return(st_read(tmp_file1, quiet=TRUE) %>% st_transform("EPSG:4326"))
+    return(st_read(tmp_file1, quiet=TRUE) %>% st_transform(as.numeric(input$sel_crs)))
   }
 
   #to avoid errors, if map intersections return NULLs, just return zero
@@ -196,9 +206,9 @@ server <- function(input, output) {
 
   #maps are very similar so just pass to a function the data and which column to colour by
   gen_map_leaflet <- function(data, column) {
-    pl <- leaflet() %>%
+    pl <- leaflet(options = leafletOptions(crs = leafletCRS(code = input$sel_crs))) %>%
       addTiles() %>%
-      addPolygons(data         = data,
+      addPolygons(data         = data %>% st_transform(default_crs),
                   fillColor    = plotCols()(code_lookup(data[[column]])),
                   fillOpacity  = 0.7,
                   color        = "#b2aeae", #boundary colour, need to use hex color codes.
@@ -446,7 +456,7 @@ server <- function(input, output) {
       labs(title = get_sf_name(name),
            fill = "Ecosystem Type") + 
       theme_bw() + 
-      coord_sf(crs = "EPSG:4326")
+      coord_sf(crs = as.numeric(input$sel_crs))
   }
   
   output$plotMap1 <- renderPlot({
