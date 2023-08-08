@@ -334,9 +334,11 @@ server <- function(input, output, session) {
     if(is.null(input$sf1) | is.null(input$sf2))
       return(NULL)
     extent_df  <- extentData()
-    percent_df <- as.data.frame(sapply(extent_df, function(x) x[2:4] / x[1]))
-    rownames(percent_df) <- rownames(extent_df)[2:4]
-    return(percent_df)
+    df <- as.data.frame(sapply(extent_df, function(x) x[2:4] / x[1]))
+    rownames(df) <- rownames(extent_df)[2:4]
+    #replace NAs and Infs with 0
+    df <- apply(df, 2, function(x) replace(x, is.na(x) | is.infinite(x), 0))
+    return(df)
   }, rownames = TRUE)
 
   #A bit more complicated. This now has a matrix where:
