@@ -8,6 +8,10 @@ library(ggplot2)
 #need to upload at least .shp, .shx, .dbf, .prj files for each
 #so the map knows where to put itself
 map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
+#TODO: multiple time points:
+## make combined data with index for each time point
+## plots: land use histograms (nominal, percent)
+##        difference in land use time 1-2, time 2-3, etc (nominal, percent)
 
 crs_data <- suppressWarnings(rgdal::make_EPSG(file))
 crs_list <- crs_data$code
