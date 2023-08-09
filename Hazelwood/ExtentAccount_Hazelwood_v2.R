@@ -22,15 +22,15 @@ sf_use_s2(FALSE)
 # Enter Ireland level data
 
 ## Coillte properties (includes polygons of all Coillte sites)
-Cproperty <- st_read("data/01_GIS_Coillte/01_Coillte_GISData/Property.shp")
+Cproperty <- st_read("Hazelwood/Property.shp")
 ## Corine land use map from 2000
-CLC00 <- st_read("data/02_GIS_shapefiles/CLC2000/CORINELandcover_2000Rev_Terrestrial.shp") 
+CLC00 <- st_read("CORINE_data/CORINELandcover_2000Rev_Terrestrial.shp") 
 ## Corine land use map from 2006
-CLC06 <- st_read("data/02_GIS_shapefiles/CLC2006/clc06_IE_v3.shp")
+CLC06 <- st_read("CORINE_data/clc06_IE_v3.shp")
 ## Corine land use map from 2012
-CLC12 <- st_read("data/02_GIS_shapefiles/CLC2012/CLC12Rev_IE_ITM.shp")
+CLC12 <- st_read("CORINE_data/CLC12Rev_IE_ITM.shp")
 ## Corine land use map from 2018
-CLC18 <- st_read("data/02_GIS_shapefiles/CLC2018/CLC18_IE_ITM_Terrestrial.shp") 
+CLC18 <- st_read("CORINE_data/CLC18_IE_ITM_Terrestrial.shp") 
 
 
 # make sure all vectors have same coordinate system WGS84
@@ -72,10 +72,10 @@ CLCall_Codes_df <- dplyr::full_join(CLC00_Codes_df, CLCall_Codes_df, by="CODE_18
 
 
 # Site CORINE layers
-hazelwood_CLC00 <- st_read("data/04_Sites/21_Hazelwood/hazelwood_CLC2000.shp")
-hazelwood_CLC06 <- st_read("data/04_Sites/21_Hazelwood/hazelwood_CLC2006.shp")
-hazelwood_CLC12 <- st_read("data/04_Sites/21_Hazelwood/hazelwood_CLC2012.shp")
-hazelwood_CLC18 <- st_read("data/04_Sites/21_Hazelwood/hazelwood_CLC2018.shp")
+hazelwood_CLC00 <- st_read("Hazelwood/hazelwood_CLC2000.shp")
+hazelwood_CLC06 <- st_read("Hazelwood/hazelwood_CLC2006.shp")
+hazelwood_CLC12 <- st_read("Hazelwood/hazelwood_CLC2012.shp")
+hazelwood_CLC18 <- st_read("Hazelwood/hazelwood_CLC2018.shp")
 
 
 # Calculate area of land cover type from Corine land cover
