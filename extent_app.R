@@ -420,6 +420,7 @@ server <- function(input, output, session) {
       geom_bar_stack(aes(x = "open", y = open, fill = id)) +
       geom_bar_stack(aes(x = "close", y = close, fill = id)) +
       ggtitle("Habitat composition") +
+      scale_fill_manual(values = plotCols()(code_lookup(changeData()$id))) +
       ylab("Area (Ha)") +
       xlab("") + theme_classic()
     return(p)
@@ -432,6 +433,7 @@ server <- function(input, output, session) {
       geom_bar(aes(x = id, y = change, fill = id), stat = "identity") +
       coord_flip() +
       ggtitle("Ecosystem type net changes") +
+      scale_fill_manual(values = plotCols()(code_lookup(changeData()$id))) +
       ylab("Area change (Ha)") +
       xlab("") + theme_classic()
     return(p)
@@ -443,6 +445,7 @@ server <- function(input, output, session) {
       labs(title = get_sf_name(name),
            fill  = "Ecosystem Type") + 
       theme_bw() + 
+      scale_fill_manual(values = plotCols()(code_lookup(data[[col]]))) +
       coord_sf(crs = as.numeric(input$sel_crs))
   }
   
