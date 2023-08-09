@@ -23,7 +23,7 @@ bold_rownames <- function(el) {
 copy_button <- function(id, format, formatLab){
   return(actionButton(paste("copy", id, format, sep = "_"), 
                       paste("Copy as", formatLab), 
-                      onclick = paste0("copytable('", id, "','", format, "')")))
+                      onclick = sprintf("copytable('%s','%s')", id, format)))
 }
 
 copy_button_group <- function(id){
@@ -38,7 +38,7 @@ plot_copy_group <- function(id){
   wellPanel(
     plotOutput(id),
     actionButton(paste0("copy_", id), "Copy", icon = icon("copy"),
-                 onclick = paste0("copyplot('", id, "')")),
+                 onclick = sprintf("copyplot('%s')", id)),
     downloadButton(paste0("download_", id))
   )
 }
@@ -68,7 +68,11 @@ extentObj <- function(id){
   )
 }
 
-ctd <- function(el, align = "left") tags$td(align = align, el)
+ctd   <- function(el, align = "left") tags$td(align = align, el)
+table <- tags$table
+tr    <- tags$tr
+li    <- tags$li
+ul    <- tags$ul
 
 uifunc <- function() {
   fluidPage(
@@ -88,12 +92,12 @@ uifunc <- function() {
         sfMapOutput("Closing", 2)
       ),
       fluidRow(
-        tags$table(style = "width: 100%",
-           tags$tr(ctd(fileInput("lookupFile", "Upload Lookup table", accept = ".csv")),
-                   ctd(verbatimTextOutput("lookup_file")),
-                   ctd(align = "right", 
-                       checkboxInput("use_codes", "Use code lookup", value = FALSE))),
-           )),
+        table(style = "width: 100%",
+         tr(ctd(fileInput("lookupFile", "Upload Lookup table", accept = ".csv")),
+            ctd(verbatimTextOutput("lookup_file")),
+            ctd(align = "right", 
+                checkboxInput("use_codes", "Use code lookup", value = FALSE))),
+         )),
       fluidRow(
         column(12,
         actionButton("gen_extent", "Generate/Refresh Extent", class = "btn-primary"),        
@@ -112,12 +116,12 @@ uifunc <- function() {
           style = "background: lightblue;",
           HTML(paste0(tags$b("Note: "), "In the ", 
             tags$em("Ecosystem Type Change Matrix"), ":", br(),
-            tags$ul(
-              tags$li("The diagonal values are the amounts unchanged for that group."),
-              tags$li("Each row is the unchanged areas plus the reduction in area."),
-              tags$li("Each column is the unchanged areas plus the additions in area"),
-              tags$li("The sum of a row will equal the opening extent."),
-              tags$li("The sum of a column will equal the closing extent.")
+            ul(
+              li("The diagonal values are the amounts unchanged for that group."),
+              li("Each row is the unchanged areas plus the reduction in area."),
+              li("Each column is the unchanged areas plus the additions in area."),
+              li("The sum of a row will equal the opening extent."),
+              li("The sum of a column will equal the closing extent.")
             )
           ))
         )
@@ -149,9 +153,8 @@ server <- function(input, output, session) {
       if(!file.exists(renamed_file))
         file.rename(shpdf$datapath[i], renamed_file)
     }
-    
-    tmp_file1 <- file.path(updir, shpdf$name[grep(pattern="*.shp$", shpdf$name)])
-    return(st_read(tmp_file1, quiet=TRUE))
+    tmp_file1 <- file.path(updir, shpdf$name[endsWith(shpdf$name, ".shp")])
+    return(st_read(tmp_file1, quiet = TRUE))
   }
 
   #to avoid errors, if map intersections return NULLs, just return zero
@@ -177,24 +180,23 @@ server <- function(input, output, session) {
       "closing"    = closing_A)
   }
 
-  #maps are very similar so just pass to a function the data and which column to colour by
+  #maps are very similar so use a function the data and which column to colour by
   gen_map_leaflet <- function(data, column) {
-    pl <- leaflet(options = leafletOptions(crs = leafletCRS(code = input$sel_crs))) %>%
+    leaflet(options = leafletOptions(crs = leafletCRS(code = input$sel_crs))) %>%
       addTiles() %>%
       addPolygons(data         = data %>% st_transform(default_crs),
                   fillColor    = plotCols()(code_lookup(data[[column]])),
                   fillOpacity  = 0.7,
-                  color        = "#b2aeae", #boundary colour, need to use hex color codes.
+                  color        = "#b2aeae", #boundary colour, use hex color codes.
                   weight       = 0.5,
                   smoothFactor = 0.2) %>%
       addLegend(pal      = plotCols(),
                 values   = code_lookup(data[[column]]),
                 position = "bottomleft",
                 title    = "Code <br>")
-    return(pl)
   }
 
-  #extract items from a list and suppress some warnings e.g. NAs, geometry issue, for now
+  #extract from a list and suppress  warnings e.g. NAs, geometry issue, for now
   lazy_unlist <- function(x) suppressWarnings(unlist(x))
 
   # Read shapefiles
@@ -227,15 +229,19 @@ server <- function(input, output, session) {
     return(ifelse(is.null(input$lookupFile), lookup_file, input$lookupFile$name))
   })
   
+  map_sel_col <- function(id, choices)
+    selectInput(sprintf("map%s_sel_col", id), "Select Grouping Column", 
+                choices = choices)
+  
   #UI with dropdown for grouping of the datasets e.g. habitat codes
   output$map1col <- renderUI({
     req(input$sf1)
-    selectInput("map1_sel_col", "Select Grouping Column", choices = names(sf1Raw()))
+    map_sel_col(1, choices = names(sf1Raw()))
   })
 
   output$map2col <- renderUI({
     req(input$sf2)
-    selectInput("map2_sel_col", "Select Grouping Column", choices = names(sf2Raw()))
+    map_sel_col(2, choices = names(sf2Raw()))
   })
   
   get_sf_name <- function(x){
@@ -404,8 +410,7 @@ server <- function(input, output, session) {
     output$copybttn_extentMatrix <- renderUI({render_copybttns("extentMatrix")})
   })
   
-  
-  geom_bar_stack <- function(mapping=NULL)
+  geom_bar_stack <- function(mapping = NULL)
     geom_bar(mapping, position = "stack", stat = "identity")
   
   output$plotComp <- renderPlot({
@@ -436,7 +441,7 @@ server <- function(input, output, session) {
     ggplot(data, aes(fill = code_lookup(.data[[col]]))) +
       geom_sf(color = NA) +
       labs(title = get_sf_name(name),
-           fill = "Ecosystem Type") + 
+           fill  = "Ecosystem Type") + 
       theme_bw() + 
       coord_sf(crs = as.numeric(input$sel_crs))
   }
