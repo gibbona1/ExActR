@@ -30,11 +30,11 @@ copy_button <- function(id, format, formatLab){
                       onclick = sprintf("copytable('%s','%s')", id, format)))
 }
 
-copy_button_group <- function(id){
+copy_button_group <- function(id, time){
   div(
-    copy_button(id, "text",  "Text"),
-    copy_button(id, "html",  "HTML"),
-    copy_button(id, "latex", "LaTeX")
+    copy_button(paste(id, time, sep = "_"), "text",  "Text"),
+    copy_button(paste(id, time, sep = "_"), "html",  "HTML"),
+    copy_button(paste(id, time, sep = "_"), "latex", "LaTeX")
   )
 }
 
@@ -67,11 +67,11 @@ sfMapOutput <- function(name, id){
   )
 }
 
-extentObj <- function(id){
+extentObj <- function(id, time){
   wellPanel(
-    bold_rownames(id),
-    tableOutput(id),
-    uiOutput(paste0("copybttn_", id))
+    bold_rownames(paste(id, time, sep = "_")),
+    tableOutput(paste(id, time, sep = "_")),
+    uiOutput(paste("copybttn", id, time, sep = "_"))
   )
 }
 
@@ -135,11 +135,11 @@ uifunc <- function() {
       fluidRow(
         tags$script(src = "copytable.js"),
         h3("Extent table (Ha)"),
-        extentObj("extentTable"),
+        uiOutput("extentTable_group"),
         h3("Extent table (% of opening)"),
-        extentObj("extentPercentTable"),
+        uiOutput("extentPercentTable_group"),
         h3("Ecosystem Type Change Matrix"),
-        extentObj("extentMatrix"),
+        uiOutput("extentMatrix_group"),
         hr(),
         wellPanel(
           style = "background: lightblue;",
@@ -266,6 +266,8 @@ server <- function(input, output, session) {
   
   sfdiv <- function(...) div(..., class = "sfdiv-container")
   
+  tabtitle <- function(x, name) paste(name, paste0("(", as.integer(x) - 1, "-", x, ")"))
+  
   observeEvent(input$addTimePoint, {
     n <- length(mapIds())
     mapIds(c(mapIds(), n + 1))
@@ -300,6 +302,45 @@ server <- function(input, output, session) {
               ~ sfMapOutput(map_oc(.x, mapIds()), .x)
               )
             )
+  })
+  
+  output$extentTable_group <- renderUI({
+    req(input$gen_extent)
+    if(any(sapply(mapIds(), sf_null)))
+      return(NULL)
+    tabname  <- "extentTable"
+    do.call(div, 
+            purrr::map(as.character(mapIds()[-1]),
+                       ~ div(h5(tabtitle(.x, tabname)),
+                             extentObj(tabname, .x))
+                       )
+    )
+  })
+  
+  output$extentPercentTable_group <- renderUI({
+    req(input$gen_extent)
+    if(any(sapply(mapIds(), sf_null)))
+      return(NULL)
+    tabname  <- "extentPercentTable"
+    do.call(div, 
+            purrr::map(as.character(mapIds()[-1]),
+                       ~ div(h5(tabtitle(.x, tabname)),
+                             extentObj(tabname, .x))
+            )
+    )
+  })
+  
+  output$extentMatrix_group <- renderUI({
+    req(input$gen_extent)
+    if(any(sapply(mapIds(), sf_null)))
+      return(NULL)
+    tabname  <- "extentMatrix"
+    do.call(div, 
+            purrr::map(as.character(mapIds()[-1]),
+                       ~ div(h5(tabtitle(.x, tabname)),
+                             extentObj(tabname, .x))
+            )
+    )
   })
 
   # Read shapefiles and render other objects
@@ -404,29 +445,27 @@ server <- function(input, output, session) {
   })
   
   sf_null <- function(i) is.null(input[[paste0("sf", i)]])
-
-  output$extentTable <- renderTable({
-    req(input$gen_extent)
-    if(any(sapply(mapIds(), sf_null)))
-      return(NULL)
-    extent_df       <- extentData()[["2"]]
-    browser()
-    extent_df$Total <- rowSums(extent_df)
-    return(extent_df)
-  }, rownames = TRUE)
   
-  #the change portions can be represented as a percent of the opening
-  output$extentPercentTable <- renderTable({
-    req(input$gen_extent)
-    if(any(sapply(mapIds(), sf_null)))
-      return(NULL)
-    extent_df  <- extentData()[["2"]]
-    df <- as.data.frame(sapply(extent_df, function(x) x[2:4] / x[1]))
-    rownames(df) <- rownames(extent_df)[2:4]
-    #replace NAs and Infs with 0
-    df <- apply(df, 2, function(x) replace(x, is.na(x) | is.infinite(x), 0))
-    return(df)
-  }, rownames = TRUE)
+  renderExtentTable <- function(id){
+    output[[paste("extentTable", id, sep = "_")]] <- renderTable({
+      extent_df       <- extentData()[[id]]
+      extent_df$Total <- rowSums(extent_df)
+      return(extent_df)
+    }, rownames = TRUE)
+    return()
+  }
+  
+  renderExtentPercentTable <- function(id){
+    #the change portions can be represented as a percent of the opening
+    output[[paste("extentPercentTable", id, sep = "_")]] <- renderTable({
+      extent_df  <- extentData()[[id]]
+      df <- as.data.frame(sapply(extent_df, function(x) x[2:4] / x[1]))
+      rownames(df) <- rownames(extent_df)[2:4]
+      #replace NAs and Infs with 0
+      df <- apply(df, 2, function(x) replace(x, is.na(x) | is.infinite(x), 0))
+      return(df)
+    }, rownames = TRUE)
+  }
 
   #A bit more complicated. This now has a matrix where:
   ##diagonals: amounts unchanged between opening and closing in that group
@@ -467,10 +506,22 @@ server <- function(input, output, session) {
     return(res_l)
   })
 
-  output$extentMatrix <- renderTable({
-    req(input$gen_extent)
-    extentMat()[["2"]]
-  }, rownames = TRUE)
+  renderExtentMatrix <- function(id){
+    output[[paste("extentMatrix", id, sep = "_")]] <- renderTable({
+      extentMat()[[id]]
+    }, rownames = TRUE)
+  }
+  
+  render_copybttns <- function(id, time){
+    if(!input$gen_extent)
+      return(NULL)
+    return(copy_button_group(id, time))
+  }
+  
+  coppybttnOutput <- function(tab, time){
+    output[[sprintf("copybttn_%s_%s", tab, time)]] <- renderUI({render_copybttns(tab, time)})
+    return()
+  }
   
   output$extentPlots <- renderUI({
     if(any(sapply(mapIds(), function(i) is.null(input[[paste0("sf", i)]]))))
@@ -485,17 +536,13 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$gen_extent, {
-    render_copybttns <- function(id){
-      if(!input$gen_extent)
-        return(NULL)
-      return(copy_button_group(id))
-    }
-    coppybttnOutput <- function(tab){
-      output[[sprintf("copybttn_%s", tab)]] <- renderUI({render_copybttns(tab)})
-      return()
-    }
-    for(tab in c("extentTable", "extentPercentTable", "extentMatrix")){
-      coppybttnOutput(tab)
+    for(time in as.character(mapIds()[-1])){
+      for(tab in c("extentTable", "extentPercentTable", "extentMatrix")){
+        coppybttnOutput(tab, time)
+      }
+      renderExtentTable(time)
+      renderExtentPercentTable(time)
+      renderExtentMatrix(time)
     }
   })
   
@@ -581,7 +628,6 @@ server <- function(input, output, session) {
   get_explore_table <- function(time, col, df){
     df  <- df[df$time == time, ]
     val <- df[, col]
-    #browser()
     exp_df <- data.frame(code   = df$id,
                          aream2 = val * 10^4,
                          areaha = val,
@@ -593,9 +639,8 @@ server <- function(input, output, session) {
   observe({
     renderExpTable <- function(id){
       output[[paste0("expTable", id)]] <- renderTable({
-        col  <- ifelse(id == "1", "opening", "closing")
+        col  <- ifelse(id == "1", "open", "close")
         time <- ifelse(id == "1", "2", id)
-        #browser()
         return(get_explore_table(time, col, changeData()))
       }, sanitize.text.function = function(x) x)
       return()
