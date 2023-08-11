@@ -85,15 +85,13 @@ uifunc <- function() {
     tabsetPanel(
       {tabPanel("Extent Account",
       fluidRow(
-        sfInput("sf1", "Upload Opening Map"),
-        sfInput("sf2", "Upload Closing Map"),
+        uiOutput("sf_group")
       ),
       fluidRow(
         selectizeInput("sel_crs", "Select CRS", choices = NULL, width = "100%")
       ),
       fluidRow(
-        sfMapOutput("Opening", 1),
-        sfMapOutput("Closing", 2)
+        uiOutput("sf_map_group")
       ),
       fluidRow(
         table(style = "width: 100%",
@@ -227,6 +225,37 @@ server <- function(input, output, session) {
     output[[paste0("sf", id, "_name")]] <- renderText({get_sf_name(input[[sf_id]]$name)})
     return()
   }
+  
+  map_oc <- function(idx, inp){
+    n <- length(inp)
+    x <- ""
+    if(inp[idx] == 1)
+      x <- "Opening"
+    else if(inp[idx] == inp[n])
+      x <- "Closing"
+    return(x)
+  }
+  
+  output$sf_group <- renderUI({
+    mapTitle <- function(idx, inp) 
+      paste("Upload", map_oc(idx, inp), "Map", paste0("(", idx, ")"))
+    
+    do.call(div, 
+            purrr::map(
+              mapIds(),
+              ~ sfInput(paste0("sf", .x), mapTitle(.x, mapIds()))
+              )
+            )
+  })
+  
+  output$sf_map_group <- renderUI({
+    do.call(div, 
+            purrr::map(
+              mapIds(),
+              ~ sfMapOutput(map_oc(.x, mapIds()), .x)
+            )
+    )
+  })
 
   # Read shapefiles and render other objects
   observe({
@@ -304,7 +333,7 @@ server <- function(input, output, session) {
   })
 
   extentData <- reactive({
-    req(input$map1_sel_col, input$map2_sel_col)
+    do.call(req, lapply(mapIds(), function(i) input[[paste0("map", i, "_sel_col")]]))
     
     #get opening, closing, changes for each code  from extent change matrix
     return(as.data.frame(sapply(codeGroups(), change_area, extentMat())))
@@ -331,7 +360,7 @@ server <- function(input, output, session) {
   #the change portions can be represented as a percent of the opening
   output$extentPercentTable <- renderTable({
     req(input$gen_extent)
-    if(is.null(input$sf1) | is.null(input$sf2))
+    if(any(sapply(mapIds(), function(i) is.null(input[[paste0("sf", i)]]))))
       return(NULL)
     extent_df  <- extentData()
     df <- as.data.frame(sapply(extent_df, function(x) x[2:4] / x[1]))
@@ -345,7 +374,7 @@ server <- function(input, output, session) {
   ##diagonals: amounts unchanged between opening and closing in that group
   ##off-diagonals: amount changed from type in the row to type in the column
   extentMat <- reactive({
-    if(plot_wait(1) | plot_wait(2))
+    if(any(sapply(mapIds(), plot_wait)))
       return(NULL)
 
     df1 <- sfs[["1"]]
@@ -381,7 +410,7 @@ server <- function(input, output, session) {
   }, rownames = TRUE)
   
   output$extentPlots <- renderUI({
-    if(is.null(input$sf1) | is.null(input$sf2))
+    if(any(sapply(mapIds(), function(i) is.null(input[[paste0("sf", i)]]))))
       return(NULL)
     
     div(
@@ -478,7 +507,7 @@ server <- function(input, output, session) {
   })
   
   output$habitatExplorer <- renderUI({
-    if(is.null(input$sf1) | is.null(input$sf2))
+    if(any(sapply(mapIds(), function(i) is.null(input[[paste0("sf", i)]]))))
       return(NULL)
     div(
       h3("Opening data"),
