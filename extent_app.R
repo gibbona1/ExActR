@@ -267,8 +267,10 @@ server <- function(input, output, session) {
   
   observeEvent(input$delTimePoint, {
     n <- length(mapIds())
-    if(n == 2)
+    if(n == 2){
       showNotification("must have at least two time points", type = "warning")
+      return()
+    }
     
     mapIds(mapIds()[-n])
   })
