@@ -382,33 +382,45 @@ server <- function(input, output, session) {
     do.call(req, lapply(mapIds(), function(i) input[[paste0("map", i, "_sel_col")]]))
     
     #get opening, closing, changes for each code  from extent change matrix
-    return(as.data.frame(sapply(codeGroups(), change_area, extentMat())))
+    res_list <- lapply(as.character(mapIds()[-1]), function(i) {
+      as.data.frame(sapply(codeGroups(), change_area, extentMat()[[i]]))
+    })
+    names(res_list) <- as.character(mapIds()[-1])
+    return(res_list)
   })
   
   changeData <- reactive({
-    extent_df <- extentData()
-    change_df <- data.frame(id     = colnames(extent_df),
-                            open   = as.numeric(extent_df["opening", ]),
-                            close  = as.numeric(extent_df["closing", ]),
-                            change = as.numeric(extent_df["net change", ]))
+    change_df <- data.frame()
+    for(id in as.character(mapIds()[-1])){
+      extent_df <- extentData()[[id]]
+      row_df <- data.frame(time   = id,
+                           id     = colnames(extent_df),
+                           open   = as.numeric(extent_df["opening", ]),
+                           close  = as.numeric(extent_df["closing", ]),
+                           change = as.numeric(extent_df["net change", ]))
+      change_df <- rbind(change_df, row_df)
+    }
     return(change_df)
   })
+  
+  sf_null <- function(i) is.null(input[[paste0("sf", i)]])
 
   output$extentTable <- renderTable({
     req(input$gen_extent)
-    if(is.null(input$sf1) | is.null(input$sf2))
+    if(any(sapply(mapIds(), sf_null)))
       return(NULL)
-    extent_df       <- extentData()
+    extent_df       <- extentData()[["2"]]
+    browser()
     extent_df$Total <- rowSums(extent_df)
     return(extent_df)
   }, rownames = TRUE)
-
+  
   #the change portions can be represented as a percent of the opening
   output$extentPercentTable <- renderTable({
     req(input$gen_extent)
-    if(any(sapply(mapIds(), function(i) is.null(input[[paste0("sf", i)]]))))
+    if(any(sapply(mapIds(), sf_null)))
       return(NULL)
-    extent_df  <- extentData()
+    extent_df  <- extentData()[["2"]]
     df <- as.data.frame(sapply(extent_df, function(x) x[2:4] / x[1]))
     rownames(df) <- rownames(extent_df)[2:4]
     #replace NAs and Infs with 0
@@ -422,37 +434,42 @@ server <- function(input, output, session) {
   extentMat <- reactive({
     if(any(sapply(mapIds(), plot_wait)))
       return(NULL)
-
-    df1 <- sfs[["1"]]
-    df2 <- sfs[["2"]]
-
-    code_grps <- codeGroups()
-
-    cross_area <- function(grp1, grp2) {
-      df1_sub <- filter(df1, (df1[[input$map1_sel_col]] %>% code_lookup) == grp1)
-      df2_sub <- filter(df2, (df2[[input$map2_sel_col]] %>% code_lookup) == grp2)
-      st_intersection(df1_sub, df2_sub) %>% clean_sum()
+    
+    res_l <- list()
+    
+    for(id in mapIds()[-1]){
+      df1 <- sfs[[paste0(id - 1)]]
+      df2 <- sfs[[paste0(id)]]
+  
+      code_grps <- codeGroups()
+  
+      cross_area <- function(grp1, grp2) {
+        df1_sub <- filter(df1, (df1[[input$map1_sel_col]] %>% code_lookup) == grp1)
+        df2_sub <- filter(df2, (df2[[input$map2_sel_col]] %>% code_lookup) == grp2)
+        st_intersection(df1_sub, df2_sub) %>% clean_sum()
+      }
+  
+      cross_mat <- do.call(rbind, lapply(code_grps, function(grp1) {
+        sapply(code_grps, function(grp2) lazy_unlist(cross_area(grp1, grp2)))
+      }))
+  
+      rownames(cross_mat) <- colnames(cross_mat) <- code_grps
+  
+      cross_mat <- cross_mat / 10^4
+  
+      cross_df  <- as.data.frame(cross_mat)
+  
+      cross_df$openings      <- rowSums(cross_df)
+      cross_df["closings", ] <- colSums(cross_df)
+      
+      res_l[[paste0(id)]] <- cross_df
     }
-
-    cross_mat <- do.call(rbind, lapply(code_grps, function(grp1) {
-      sapply(code_grps, function(grp2) lazy_unlist(cross_area(grp1, grp2)))
-    }))
-
-    rownames(cross_mat) <- colnames(cross_mat) <- code_grps
-
-    cross_mat <- cross_mat / 10^4
-
-    cross_df  <- as.data.frame(cross_mat)
-
-    cross_df$openings      <- rowSums(cross_df)
-    cross_df["closings", ] <- colSums(cross_df)
-
-    return(cross_df)
+    return(res_l)
   })
 
   output$extentMatrix <- renderTable({
     req(input$gen_extent)
-    extentMat()
+    extentMat()[["2"]]
   }, rownames = TRUE)
   
   output$extentPlots <- renderUI({
@@ -494,7 +511,8 @@ server <- function(input, output, session) {
       ggtitle("Habitat composition") +
       scale_fill_manual(values = plotCols()(code_lookup(changeData()$id))) +
       ylab("Area (Ha)") +
-      xlab("") + theme_classic()
+      xlab("") + theme_classic() +
+      facet_grid(vars(time))
     return(p)
   })
   
@@ -507,7 +525,8 @@ server <- function(input, output, session) {
       ggtitle("Ecosystem type net changes") +
       scale_fill_manual(values = plotCols()(code_lookup(changeData()$id))) +
       ylab("Area change (Ha)") +
-      xlab("") + theme_classic()
+      xlab("") + theme_classic() +
+      facet_grid(vars(time))
     return(p)
   })
   
@@ -549,18 +568,20 @@ server <- function(input, output, session) {
   })
   
   output$habitatExplorer <- renderUI({
-    if(any(sapply(mapIds(), function(i) is.null(input[[paste0("sf", i)]]))))
+    if(all(sapply(mapIds(), function(i) is.null(input[[paste0("sf", i)]]))))
       return(NULL)
-    div(
-      h3("Opening data"),
-      tableOutput("openingExpTable"),
-      h3("Closing data"),
-      tableOutput("closingExpTable")
-    )
+    
+    do.call(div, 
+            purrr::map(mapIds(),
+                       ~ div(h3(paste0(map_oc(.x, mapIds()), " Data (", .x, ")")),
+                             tableOutput(paste0("expTable", .x))))
+            )
   })
   
-  get_explore_table <- function(col, df){
+  get_explore_table <- function(time, col, df){
+    df  <- df[df$time == time, ]
     val <- df[, col]
+    #browser()
     exp_df <- data.frame(code   = df$id,
                          aream2 = val * 10^4,
                          areaha = val,
@@ -569,13 +590,20 @@ server <- function(input, output, session) {
     return(exp_df)
   }
   
-  output$openingExpTable <- renderTable({
-    return(get_explore_table("open", changeData()))
-  }, sanitize.text.function = function(x) x)
-  
-  output$closingExpTable <- renderTable({
-    return(get_explore_table("close", changeData()))
-  }, sanitize.text.function = function(x) x)
+  observe({
+    renderExpTable <- function(id){
+      output[[paste0("expTable", id)]] <- renderTable({
+        col  <- ifelse(id == "1", "opening", "closing")
+        time <- ifelse(id == "1", "2", id)
+        #browser()
+        return(get_explore_table(time, col, changeData()))
+      }, sanitize.text.function = function(x) x)
+      return()
+    }
+    for(id in mapIds()){
+      renderExpTable(paste0(id))
+    }
+  })
 }
 
 shinyApp(uifunc(), server)
