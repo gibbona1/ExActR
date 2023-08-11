@@ -85,10 +85,17 @@ uifunc <- function() {
     tabsetPanel(
       {tabPanel("Extent Account",
       fluidRow(
-        uiOutput("sf_group")
+        uiOutput("sf_group"),
       ),
       fluidRow(
-        selectizeInput("sel_crs", "Select CRS", choices = NULL, width = "100%")
+        column(6,
+          selectizeInput("sel_crs", "Select CRS", choices = NULL, width = "100%"),
+        ),
+        column(6,
+          actionButton("addTimePoint", label = "Add Time Point", icon = icon("plus-circle"), style = 'margin-top:25px'),
+          actionButton("delTimePoint", label = "Delete Time Point", icon = icon("minus-circle"), style = 'margin-top:25px'),
+          align = "right"
+        ),
       ),
       fluidRow(
         uiOutput("sf_map_group")
@@ -235,6 +242,19 @@ server <- function(input, output, session) {
       x <- "Closing"
     return(x)
   }
+  
+  observeEvent(input$addTimePoint, {
+    n <- length(mapIds())
+    mapIds(c(mapIds(), n + 1))
+  })
+  
+  observeEvent(input$delTimePoint, {
+    n <- length(mapIds())
+    if(n == 2)
+      showNotification("must have at least two time points", type = "warning")
+    
+    mapIds(mapIds()[-n])
+  })
   
   output$sf_group <- renderUI({
     mapTitle <- function(idx, inp) 
