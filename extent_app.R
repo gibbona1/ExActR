@@ -483,9 +483,9 @@ server <- function(input, output, session) {
       code_grps <- codeGroups()
   
       cross_area <- function(grp1, grp2) {
-        df1_sub <- filter(df1, (df1[[input$map1_sel_col]] %>% code_lookup) == grp1)
-        df2_sub <- filter(df2, (df2[[input$map2_sel_col]] %>% code_lookup) == grp2)
-        st_intersection(df1_sub, df2_sub) %>% clean_sum()
+        df1_sub <- filter(df1, (df1[[input[[sprintf("map%s_sel_col", id-1)]]]] %>% code_lookup) == grp1)
+        df2_sub <- filter(df2, (df2[[input[[sprintf("map%s_sel_col", id)]]]] %>% code_lookup) == grp2)
+        st_intersection(df1_sub$geometry, df2_sub$geometry) %>% clean_sum()
       }
   
       cross_mat <- do.call(rbind, lapply(code_grps, function(grp1) {
