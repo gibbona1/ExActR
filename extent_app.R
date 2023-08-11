@@ -146,6 +146,10 @@ server <- function(input, output, session) {
   for(plt in plot_names)
     plots[[plt]]  <- NULL
   
+  mapIds <- reactiveVal(c(1, 2))
+  sfRaws <- reactiveValues()
+  sfs    <- reactiveValues()
+  
   updateSelectizeInput(session, "sel_crs", choices = crs_list, 
                        selected = default_crs, server = TRUE)
 
@@ -173,13 +177,13 @@ server <- function(input, output, session) {
   #this gets the aggregate changes in each group
   #(start and end areas, and amount increased, decreased, changed)
   change_area <- function(grp, ext_mat){
-    opening_A <- ext_mat[grp, "openings"]
-    closing_A <- ext_mat["closings", grp]
-    unchanged_A <- ext_mat[grp,grp]
+    opening_A   <- ext_mat[grp, "openings"]
+    closing_A   <- ext_mat["closings", grp]
+    unchanged_A <- ext_mat[grp, grp]
     c(
       "opening"    = opening_A,
-      "increase"   = sum(ext_mat[,grp]) - closing_A - unchanged_A,
-      "decrease"   = -1*(sum(ext_mat[grp,]) - opening_A - unchanged_A),
+      "increase"   = sum(ext_mat[, grp]) - closing_A - unchanged_A,
+      "decrease"   = -1*(sum(ext_mat[grp, ]) - opening_A - unchanged_A),
       "net change" = closing_A - opening_A,
       "closing"    = closing_A)
   }
@@ -202,26 +206,41 @@ server <- function(input, output, session) {
 
   #extract from a list and suppress  warnings e.g. NAs, geometry issue, for now
   lazy_unlist <- function(x) suppressWarnings(unlist(x))
-
-  # Read shapefiles
-  sf1Raw <- reactive({
-    req(input$sf1)
-    return(setup_read_sf(input$sf1))
-  })
-
-  sf2Raw <- reactive({
-    req(input$sf2)
-    return(setup_read_sf(input$sf2))
-  })
   
-  sf1 <- reactive({
-    req(input$sf1)
-    return(sf1Raw() %>% st_transform(as.numeric(input$sel_crs)))
-  })
+  get_sf_name <- function(x){
+    if(is.null(x))
+      return(" ")
+    disp_name <- strsplit(x, "\\.")
+    return(disp_name[[1]][1])
+  }
   
-  sf2 <- reactive({
-    req(input$sf2)
-    return(sf2Raw() %>% st_transform(as.numeric(input$sel_crs)))
+  #selectInput for what column of sf data to colour in the map and for accounts
+  renderMapSel <- function(id){
+    output[[paste0("map", id, "col")]] <- renderUI({
+      selectInput(sprintf("map%s_sel_col", id), "Select Grouping Column", 
+                  choices = names(sfRaws[[id]]))
+      })
+    return()
+  }
+  
+  renderSfName <- function(id, sf_id){
+    output[[paste0("sf", id, "_name")]] <- renderText({get_sf_name(input[[sf_id]]$name)})
+    return()
+  }
+
+  # Read shapefiles and render other objects
+  observe({
+    for(id in mapIds()){
+      id    <- paste0(id)
+      sf_id <- paste0("sf", id)
+      if(is.null(input[[sf_id]]))
+        next
+      sfRaws[[id]] <- setup_read_sf(input[[sf_id]])
+      sfs[[id]]    <- sfRaws[[paste0(id)]] %>% st_transform(as.numeric(input$sel_crs))
+      #UI with dropdown for grouping of the datasets e.g. habitat codes
+      renderMapSel(paste0(id))
+      renderSfName(id, sf_id)
+    }
   })
 
   lookupData <- reactive({
@@ -232,41 +251,10 @@ server <- function(input, output, session) {
   output$lookup_file <- renderText({
     return(ifelse(is.null(input$lookupFile), lookup_file, input$lookupFile$name))
   })
-  
-  map_sel_col <- function(id, choices)
-    selectInput(sprintf("map%s_sel_col", id), "Select Grouping Column", 
-                choices = choices)
-  
-  #UI with dropdown for grouping of the datasets e.g. habitat codes
-  output$map1col <- renderUI({
-    req(input$sf1)
-    map_sel_col(1, choices = names(sf1Raw()))
-  })
-
-  output$map2col <- renderUI({
-    req(input$sf2)
-    map_sel_col(2, choices = names(sf2Raw()))
-  })
-  
-  get_sf_name <- function(x){
-    disp_name <- strsplit(x, "\\.")
-    return(disp_name[[1]][1])
-  }
-  
-  output$sf1_name <- renderText({
-    req(input$sf1)
-    return(get_sf_name(input$sf1$name))
-  })
-  
-  output$sf2_name <- renderText({
-    req(input$sf2)
-    return(get_sf_name(input$sf2$name))
-  })
 
   #if the sf data or selectInput are not ready, wait
-  plot1Wait <- reactive({is.null(input$sf1) | is.null(input$map1_sel_col)})
-
-  plot2Wait <- reactive({is.null(input$sf2) | is.null(input$map2_sel_col)})
+  plot_wait <- function(id) 
+    return(is.null(input[[paste0("sf", id)]]) | is.null(input[[paste0("map", id, "_sel_col")]]))
   
   code_lookup <- function(vec){
     if(input$use_codes){
@@ -282,10 +270,11 @@ server <- function(input, output, session) {
   #groups to iterate over for extent account
   codeGroups <- reactive({
     cols <- c()
-    if(!plot1Wait())
-      cols <- union(cols, code_lookup(sf1()[[input$map1_sel_col]]))
-    if(!plot2Wait())
-      cols <- union(cols, code_lookup(sf2()[[input$map2_sel_col]]))
+    for(i in mapIds()){
+      m_col <- input[[paste0("map", i, "_sel_col")]]
+      if(!plot_wait(i))
+        cols  <- union(cols, code_lookup(sfs[[paste0(i)]][[m_col]]))
+    }
     return(cols)
   })
 
@@ -297,20 +286,21 @@ server <- function(input, output, session) {
     )
   })
 
-  # Render the first plot
-  output$plot1 <- renderLeaflet({
-    if(plot1Wait())
-      return(leaflet() %>% setView(lng = 0, lat = 0, zoom = 2))
-
-    return(gen_map_leaflet(sf1(), input$map1_sel_col))
-  })
-
-  # Render the second plot
-  output$plot2 <- renderLeaflet({
-    if(plot2Wait())
-      return(leaflet() %>% setView(lng = 10, lat = 10, zoom = 2))
-
-    return(gen_map_leaflet(sf2(), input$map2_sel_col))
+  # Render plots
+  renderLeafletPlot <- function(id){
+    output[[paste0("plot", id)]] <- renderLeaflet({
+      if(plot_wait(id))
+        return(leaflet() %>% setView(lng = 10*id, lat = 0, zoom = 2))
+      else
+        return(gen_map_leaflet(sfs[[paste0(id)]], input[[paste0("map", id, "_sel_col")]]))
+    })
+    return()
+  }
+  
+  observe({
+    for(id in mapIds()){
+      renderLeafletPlot(id)
+    }
   })
 
   extentData <- reactive({
@@ -323,9 +313,9 @@ server <- function(input, output, session) {
   changeData <- reactive({
     extent_df <- extentData()
     change_df <- data.frame(id     = colnames(extent_df),
-                            open   = as.numeric(extent_df["opening",]),
-                            close  = as.numeric(extent_df["closing",]),
-                            change = as.numeric(extent_df["net change",]))
+                            open   = as.numeric(extent_df["opening", ]),
+                            close  = as.numeric(extent_df["closing", ]),
+                            change = as.numeric(extent_df["net change", ]))
     return(change_df)
   })
 
@@ -355,11 +345,11 @@ server <- function(input, output, session) {
   ##diagonals: amounts unchanged between opening and closing in that group
   ##off-diagonals: amount changed from type in the row to type in the column
   extentMat <- reactive({
-    if(plot1Wait() | plot2Wait())
+    if(plot_wait(1) | plot_wait(2))
       return(NULL)
 
-    df1 <- sf1()
-    df2 <- sf2()
+    df1 <- sfs[["1"]]
+    df2 <- sfs[["2"]]
 
     code_grps <- codeGroups()
 
@@ -456,14 +446,19 @@ server <- function(input, output, session) {
       coord_sf(crs = as.numeric(input$sel_crs))
   }
   
-  output$plotMap1 <- renderPlot({
-    p <- plots$plotMap1 <- plot_extent(sf1(), input$map1_sel_col, input$sf1$name)
-    return(p)
-  })
-  
-  output$plotMap2 <- renderPlot({
-    p <- plots$plotMap2 <- plot_extent(sf2(), input$map2_sel_col, input$sf2$name)
-    return(p)
+  observe({
+    renderMapPlot <- function(id){
+      m_id <- paste0("plotMap", id)
+      output[[m_id]] <- renderPlot({
+        p <- plots[[m_id]] <- plot_extent(sfs[[paste0(id)]], 
+                                          input[[paste0("map", id, "_sel_col")]], 
+                                          input[[paste0("sf", id)]]$name)
+        return(p)
+      })
+      return()
+    }
+    for(id in mapIds())
+      renderMapPlot(id)
   })
   
   render_download_bttn <- function(id){
