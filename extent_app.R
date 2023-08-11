@@ -247,7 +247,8 @@ server <- function(input, output, session) {
   }
   
   renderSfName <- function(id, sf_id){
-    output[[paste0("sf", id, "_name")]] <- renderText({get_sf_name(input[[sf_id]]$name)})
+    sf_name <- get_sf_name(input[[sf_id]]$name)
+    output[[paste0("sf", id, "_name")]] <- renderText({sf_name})
     return()
   }
   
@@ -310,7 +311,14 @@ server <- function(input, output, session) {
       sfs[[id]]    <- sfRaws[[paste0(id)]] %>% st_transform(as.numeric(input$sel_crs))
       #UI with dropdown for grouping of the datasets e.g. habitat codes
       renderMapSel(paste0(id))
-      renderSfName(id, sf_id)
+    }
+  })
+  
+  observe({
+    for(id in mapIds()){
+      renderSfName(id, paste0("sf", id))
+      renderLeafletPlot(id)
+      renderMapPlot(id)
     }
   })
 
@@ -367,12 +375,6 @@ server <- function(input, output, session) {
     })
     return()
   }
-  
-  observe({
-    for(id in mapIds()){
-      renderLeafletPlot(id)
-    }
-  })
 
   extentData <- reactive({
     do.call(req, lapply(mapIds(), function(i) input[[paste0("map", i, "_sel_col")]]))
@@ -517,20 +519,16 @@ server <- function(input, output, session) {
       coord_sf(crs = as.numeric(input$sel_crs))
   }
   
-  observe({
-    renderMapPlot <- function(id){
-      m_id <- paste0("plotMap", id)
-      output[[m_id]] <- renderPlot({
-        p <- plots[[m_id]] <- plot_extent(sfs[[paste0(id)]], 
-                                          input[[paste0("map", id, "_sel_col")]], 
-                                          input[[paste0("sf", id)]]$name)
-        return(p)
-      })
-      return()
-    }
-    for(id in mapIds())
-      renderMapPlot(id)
-  })
+  renderMapPlot <- function(id){
+    m_id <- paste0("plotMap", id)
+    output[[m_id]] <- renderPlot({
+      p <- plots[[m_id]] <- plot_extent(sfs[[paste0(id)]], 
+                                        input[[paste0("map", id, "_sel_col")]], 
+                                        input[[paste0("sf", id)]]$name)
+      return(p)
+    })
+    return()
+  }
   
   render_download_bttn <- function(id){
     downloadHandler(
