@@ -48,11 +48,11 @@ plot_copy_group <- function(id){
 }
 
 sfInput <- function(name, lab){
-  column(6,
+  div(
     fileInput(name, lab, accept = map_accepts, multiple = TRUE),
     tags$style("white-space: pre-wrap;"),
     verbatimTextOutput(paste(name, "name", sep = "_")),
-    align = ifelse(name == "sf1", "left", "right")
+    class = "sfdiv-item"
     )
 }
 
@@ -85,6 +85,23 @@ uifunc <- function() {
     tabsetPanel(
       {tabPanel("Extent Account",
       fluidRow(
+        tags$style(
+          HTML("
+            .sfdiv-container {
+              display: flex;
+              flex-direction: row;
+              justify-content: space-between;
+            }
+            
+            .sfdiv-item:not(:last-child) {
+              text-align: left;
+            }
+            
+            .sfdiv-item:last-child {
+              text-align: right;
+            }
+          ")
+        ),
         uiOutput("sf_group"),
       ),
       fluidRow(
@@ -260,7 +277,8 @@ server <- function(input, output, session) {
     mapTitle <- function(idx, inp) 
       paste("Upload", map_oc(idx, inp), "Map", paste0("(", idx, ")"))
     
-    do.call(div, 
+    sfdiv <- function(...) div(..., class = "sfdiv-container")
+    do.call(sfdiv, 
             purrr::map(
               mapIds(),
               ~ sfInput(paste0("sf", .x), mapTitle(.x, mapIds()))
