@@ -57,10 +57,11 @@ sfInput <- function(name, lab){
 }
 
 sfMapOutput <- function(name, id){
-  column(6,
-         h3(paste(name, "Map")),
-         leafletOutput(paste0("plot", id)),
-         uiOutput(paste0("map", id, "col"))
+  div(
+    h3(paste(name, "Map", paste0("(", id, ")"))),
+    leafletOutput(paste0("plot", id)),
+    uiOutput(paste0("map", id, "col")),
+    class = "sfdiv-item"
   )
 }
 
@@ -260,6 +261,8 @@ server <- function(input, output, session) {
     return(x)
   }
   
+  sfdiv <- function(...) div(..., class = "sfdiv-container")
+  
   observeEvent(input$addTimePoint, {
     n <- length(mapIds())
     mapIds(c(mapIds(), n + 1))
@@ -279,7 +282,6 @@ server <- function(input, output, session) {
     mapTitle <- function(idx, inp) 
       paste("Upload", map_oc(idx, inp), "Map", paste0("(", idx, ")"))
     
-    sfdiv <- function(...) div(..., class = "sfdiv-container")
     do.call(sfdiv, 
             purrr::map(
               mapIds(),
@@ -289,7 +291,7 @@ server <- function(input, output, session) {
   })
   
   output$sf_map_group <- renderUI({
-    do.call(div, 
+    do.call(sfdiv, 
             purrr::map(
               mapIds(),
               ~ sfMapOutput(map_oc(.x, mapIds()), .x)
