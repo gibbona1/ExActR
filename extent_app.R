@@ -404,21 +404,24 @@ server <- function(input, output, session) {
   
   observeEvent(input$gen_extent, {
     render_copybttns <- function(id){
-      if(input$gen_extent)
-        return(copy_button_group(id))
-      else
+      if(!input$gen_extent)
         return(NULL)
-      }
-    output$copybttn_extentTable <- renderUI({render_copybttns("extentTable")})
-    output$copybttn_extentPercentTable <- renderUI({render_copybttns("extentPercentTable")})
-    output$copybttn_extentMatrix <- renderUI({render_copybttns("extentMatrix")})
+      return(copy_button_group(id))
+    }
+    coppybttnOutput <- function(tab){
+      output[[sprintf("copybttn_%s", tab)]] <- renderUI({render_copybttns(tab)})
+      return()
+    }
+    for(tab in c("extentTable", "extentPercentTable", "extentMatrix")){
+      coppybttnOutput(tab)
+    }
   })
   
   geom_bar_stack <- function(mapping = NULL)
     geom_bar(mapping, position = "stack", stat = "identity")
   
-  output$plotComp <- renderPlot({
-    p <- plots$plotComp <- changeData() %>% 
+  output$plotStack <- renderPlot({
+    p <- plots$plotStack <- changeData() %>% 
       mutate(id = code_lookup(id)) %>%
       ggplot() + 
       geom_bar_stack(aes(x = "open", y = open, fill = id)) +
@@ -430,8 +433,8 @@ server <- function(input, output, session) {
     return(p)
   })
   
-  output$plotStack <- renderPlot({
-    p <- plots$plotStack <-  changeData() %>% 
+  output$plotComp <- renderPlot({
+    p <- plots$plotComp <-  changeData() %>% 
       mutate(id = code_lookup(id)) %>%
       ggplot() + 
       geom_bar(aes(x = id, y = change, fill = id), stat = "identity") +
@@ -471,8 +474,12 @@ server <- function(input, output, session) {
   }
   
   observe({
-    for(plt in plot_names)
+    downloadPlotOutput <- function(plt){
       output[[paste0("download_", plt)]]  <- render_download_bttn(plt)
+      return()
+    }
+    for(plt in plot_names)
+      downloadPlotOutput(plt)
   })
   
   output$habitatExplorer <- renderUI({
