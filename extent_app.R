@@ -431,7 +431,12 @@ server <- function(input, output, session) {
   })
   
   changeData <- reactive({
-    change_df <- data.frame()
+    extent_df <- extentData()[["2"]]
+    change_df <- data.frame(time   = "1",
+                            id     = colnames(extent_df),
+                            open   = NA,
+                            close  = as.numeric(extent_df["opening", ]),
+                            change = NA)
     for(id in as.character(mapIds()[-1])){
       extent_df <- extentData()[[id]]
       row_df <- data.frame(time   = id,
@@ -549,23 +554,34 @@ server <- function(input, output, session) {
   geom_bar_stack <- function(mapping = NULL)
     geom_bar(mapping, position = "stack", stat = "identity")
   
+  time_oc <- function(time){
+    time_vec <- changeData()$time
+    res <- ifelse(time_vec == 1, "open", ifelse(time_vec == length(mapIds()), "close", ""))
+    res <- paste0(res, "(", time_vec, ")")
+    return(res)
+  }
+  
   output$plotStack <- renderPlot({
-    p <- plots$plotStack <- changeData() %>% 
-      mutate(id = code_lookup(id)) %>%
+    df <- changeData() %>% 
+      mutate(id   = code_lookup(id),
+             time = time_oc(time))
+    df$time <- factor(df$time, levels = unique(df$time))
+    p <- plots$plotStack <- df %>%
       ggplot() + 
-      geom_bar_stack(aes(x = "open", y = open, fill = id)) +
-      geom_bar_stack(aes(x = "close", y = close, fill = id)) +
+      geom_bar_stack(aes(x = time, y = close, fill = id)) +
       ggtitle("Habitat composition") +
-      scale_fill_manual(values = plotCols()(code_lookup(changeData()$id))) +
+      scale_fill_manual(values = plotCols()(code_lookup(df$id))) +
       ylab("Area (Ha)") +
-      xlab("") + theme_classic() +
-      facet_grid(vars(time))
+      xlab("") + theme_classic()
     return(p)
   })
   
   output$plotComp <- renderPlot({
+    chng_time <- function(x) paste0(as.integer(x)-1, "-", x)
     p <- plots$plotComp <-  changeData() %>% 
-      mutate(id = code_lookup(id)) %>%
+      filter(time >= 2) %>%
+      mutate(id   = code_lookup(id),
+             time = chng_time(time)) %>%
       ggplot() + 
       geom_bar(aes(x = id, y = change, fill = id), stat = "identity") +
       coord_flip() +
