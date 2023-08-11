@@ -58,6 +58,8 @@ sfInput <- function(name, lab){
 
 sfMapOutput <- function(name, id){
   div(
+    #this keeps the overflow same as sfInput for good spacing
+    div(class = "form-group shiny-input-container"),
     h3(paste(name, "Map", paste0("(", id, ")"))),
     leafletOutput(paste0("plot", id)),
     uiOutput(paste0("map", id, "col")),
@@ -296,8 +298,8 @@ server <- function(input, output, session) {
             purrr::map(
               mapIds(),
               ~ sfMapOutput(map_oc(.x, mapIds()), .x)
+              )
             )
-    )
   })
 
   # Read shapefiles and render other objects
