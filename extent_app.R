@@ -47,31 +47,37 @@ plot_copy_group <- function(id){
   )
 }
 
+sfdiv <- function(...) div(..., class = "sfdiv-container")
+sfdivi <- function(...) div(..., class = "sfdiv-item")
+
+#this keeps the overflow same as sfInput for good spacing
+input_group_div <- function(...)
+  div(..., class = "form-group shiny-input-container")
+
 sfInput <- function(name, lab){
-  div(
+  sfdivi(
     fileInput(name, lab, accept = map_accepts, multiple = TRUE),
     tags$style("white-space: pre-wrap;"),
-    verbatimTextOutput(paste(name, "name", sep = "_")),
-    class = "sfdiv-item"
+    verbatimTextOutput(paste(name, "name", sep = "_"))
     )
 }
 
 sfMapOutput <- function(name, id){
-  div(
-    #this keeps the overflow same as sfInput for good spacing
-    div(class = "form-group shiny-input-container"),
+  sfdivi(
+    input_group_div(),
     h3(paste(name, "Map", paste0("(", id, ")"))),
     leafletOutput(paste0("plot", id)),
-    uiOutput(paste0("map", id, "col")),
-    class = "sfdiv-item"
+    uiOutput(paste0("map", id, "col"))
   )
 }
 
 extentObj <- function(id, time){
   wellPanel(
+    input_group_div(),
     bold_rownames(paste(id, time, sep = "_")),
     tableOutput(paste(id, time, sep = "_")),
-    uiOutput(paste("copybttn", id, time, sep = "_"))
+    uiOutput(paste("copybttn", id, time, sep = "_")),
+    class = "sfdiv-item"
   )
 }
 
@@ -264,8 +270,6 @@ server <- function(input, output, session) {
     return(x)
   }
   
-  sfdiv <- function(...) div(..., class = "sfdiv-container")
-  
   tabtitle <- function(x, name) paste(name, paste0("(", as.integer(x) - 1, "-", x, ")"))
   
   observeEvent(input$addTimePoint, {
@@ -309,7 +313,7 @@ server <- function(input, output, session) {
     if(any(sapply(mapIds(), sf_null)))
       return(NULL)
     tabname  <- "extentTable"
-    do.call(div, 
+    do.call(sfdiv, 
             purrr::map(as.character(mapIds()[-1]),
                        ~ div(h5(tabtitle(.x, tabname)),
                              extentObj(tabname, .x))
@@ -322,7 +326,7 @@ server <- function(input, output, session) {
     if(any(sapply(mapIds(), sf_null)))
       return(NULL)
     tabname  <- "extentPercentTable"
-    do.call(div, 
+    do.call(sfdiv, 
             purrr::map(as.character(mapIds()[-1]),
                        ~ div(h5(tabtitle(.x, tabname)),
                              extentObj(tabname, .x))
@@ -335,7 +339,7 @@ server <- function(input, output, session) {
     if(any(sapply(mapIds(), sf_null)))
       return(NULL)
     tabname  <- "extentMatrix"
-    do.call(div, 
+    do.call(sfdiv, 
             purrr::map(as.character(mapIds()[-1]),
                        ~ div(h5(tabtitle(.x, tabname)),
                              extentObj(tabname, .x))
