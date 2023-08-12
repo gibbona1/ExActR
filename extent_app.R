@@ -138,27 +138,7 @@ uifunc <- function() {
         h3("Ecosystem Type Change Matrix"),
         uiOutput("extentMatrix_group"),
         hr(),
-        wellPanel(
-          style = "background: lightblue;",
-          HTML(paste0(tags$b("Note: "), br(), "In the ", 
-            tags$em("Ecosystem Type Change Matrix"), ":", br(),
-            ul(
-              li("The diagonal values are the amounts unchanged for that group."),
-              li("Each row is the unchanged areas plus the reduction in area."),
-              li("Each column is the unchanged areas plus the additions in area."),
-              li("The sum of a row will equal the opening extent."),
-              li("The sum of a column will equal the closing extent.")
-            ),
-            paste0("For ", tags$em("multiple time points"), ":"), br(),
-            ul(
-              li(HTML(paste("The", tags$em("(n)"), "time points are assumed to be in chronological order."))),
-              li(HTML(paste(tags$em("Opening (1)"), "being the first time point and", 
-                       tags$em("Closing (n)"), "being the last time point."))),
-              li(HTML(paste("The", tags$em("n-1"), "extent accounts tackle periods",
-                       tags$em("i-1"), "to", tags$em("i"), "for", tags$em("i=2,...,n"))))
-            )
-          ))
-        )
+        includeHTML("www/notes.html")
       )
       )},
       {tabPanel("Composition Plots",
