@@ -30,11 +30,11 @@ copy_button <- function(id, format, formatLab){
                       onclick = sprintf("copytable('%s','%s')", id, format)))
 }
 
-copy_button_group <- function(id, time){
+copy_button_group <- function(id, time, idt = paste(id, time, sep = "_")){
   div(
-    copy_button(paste(id, time, sep = "_"), "text",  "Text"),
-    copy_button(paste(id, time, sep = "_"), "html",  "HTML"),
-    copy_button(paste(id, time, sep = "_"), "latex", "LaTeX")
+    copy_button(idt, "text",  "Text"),
+    copy_button(idt, "html",  "HTML"),
+    copy_button(idt, "latex", "LaTeX")
   )
 }
 
@@ -51,7 +51,7 @@ sfdiv  <- function(...) div(..., class = "sfdiv-container")
 sfdivi <- function(...) div(..., class = "sfdiv-item")
 
 #this keeps the overflow same as sfInput for good spacing
-input_group_div <- function(...) div(..., class = "shiny-input-container")
+input_group_div <- function() div(class = "shiny-input-container")
 
 sfInput <- function(name, lab){
   sfdivi(
@@ -150,10 +150,7 @@ uifunc <- function() {
 }
 
 server <- function(input, output, session) {
-  
-  
-  plots <- reactiveValues()
-  
+  plots  <- reactiveValues()
   mapIds <- reactiveVal(c(1, 2))
   sfRaws <- reactiveValues()
   sfs    <- reactiveValues()
@@ -225,8 +222,7 @@ server <- function(input, output, session) {
   get_sf_name <- function(x){
     if(is.null(x))
       return(" ")
-    disp_name <- strsplit(x, "\\.")
-    return(disp_name[[1]][1])
+    return(strsplit(x, "\\.")[[1]][1])
   }
   
   #selectInput for what column of sf data to colour in the map and for accounts
@@ -244,50 +240,45 @@ server <- function(input, output, session) {
     return()
   }
   
-  map_oc <- function(idx, inp){
-    n <- length(inp)
-    x <- ""
-    if(inp[idx] == 1)
-      x <- "Opening"
-    else if(inp[idx] == inp[n])
-      x <- "Closing"
-    return(x)
+  map_oc <- function(idx, inp = mapIds()){
+    if(idx == 1)
+      return("Opening")
+    else if(idx == inp[length(inp)])
+      return("Closing")
+    else
+      return("")
   }
   
-  tabtitle <- function(x, name) paste(name, paste0("(", as.integer(x) - 1, "-", x, ")"))
+  tabtitle <- function(x, nm) sprintf("%s (%d-%s)", nm, as.integer(x) - 1, x)
   
   observeEvent(input$addTimePoint, {
-    n <- length(mapIds())
-    mapIds(c(mapIds(), n + 1))
+    mapIds(c(mapIds(), length(mapIds()) + 1))
   })
   
   observeEvent(input$delTimePoint, {
     n <- length(mapIds())
-    if(n == 2){
+    if(n == 2)
       showNotification("must have at least two time points", type = "warning")
-      return()
-    }
-    
-    mapIds(mapIds()[-n])
+    else
+      mapIds(mapIds()[-n])
+    return()
   })
   
   output$sf_group <- renderUI({
-    mapTitle <- function(idx, inp) 
+    mapTitle <- function(idx, inp = mapIds()) 
       paste("Upload", map_oc(idx, inp), "Map", paste0("(", idx, ")"))
     
     do.call(sfdiv, 
-            purrr::map(
-              mapIds(),
-              ~ sfInput(paste0("sf", .x), mapTitle(.x, mapIds()))
+            purrr::map(mapIds(),
+              ~ sfInput(paste0("sf", .x), mapTitle(.x))
               )
             )
   })
   
   output$sf_map_group <- renderUI({
     do.call(sfdiv, 
-            purrr::map(
-              mapIds(),
-              ~ sfMapOutput(map_oc(.x, mapIds()), .x)
+            purrr::map(mapIds(),
+              ~ sfMapOutput(map_oc(.x), .x)
               )
             )
   })
