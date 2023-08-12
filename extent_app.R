@@ -172,14 +172,19 @@ uifunc <- function() {
 
 server <- function(input, output, session) {
   
-  plot_names <- c("plotComp", "plotStack", "plotMap1", "plotMap2")
+  
   plots <- reactiveValues()
-  for(plt in plot_names)
-    plots[[plt]]  <- NULL
   
   mapIds <- reactiveVal(c(1, 2))
   sfRaws <- reactiveValues()
   sfs    <- reactiveValues()
+  
+  plot_names <- reactive({
+    p_names <- c("plotComp", "plotStack", paste0("plotMap", mapIds()))
+    for(plt in p_names)
+      plots[[plt]] <- NULL
+    return(p_names)
+  })
   
   updateSelectizeInput(session, "sel_crs", choices = crs_list, 
                        selected = default_crs, server = TRUE)
@@ -540,7 +545,7 @@ server <- function(input, output, session) {
       tags$head(
         tags$script(src = "copyplot.js")
       ),
-      tagList(lapply(plot_names, plot_copy_group))
+      tagList(lapply(plot_names(), plot_copy_group))
     )
   })
   
@@ -630,7 +635,7 @@ server <- function(input, output, session) {
       output[[paste0("download_", plt)]]  <- render_download_bttn(plt)
       return()
     }
-    for(plt in plot_names)
+    for(plt in plot_names())
       downloadPlotOutput(plt)
   })
   
