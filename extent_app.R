@@ -419,20 +419,22 @@ server <- function(input, output, session) {
     return(res_list)
   })
   
+  chk1 <- function(id, y, n) {
+    if(id == "1")
+      return(y)
+    else
+      return(n)
+  }
+  
   changeData <- reactive({
-    extent_df <- extentData()[["2"]]
-    change_df <- data.frame(time   = "1",
-                            id     = colnames(extent_df),
-                            open   = NA,
-                            close  = as.numeric(extent_df["opening", ]),
-                            change = NA)
-    for(id in as.character(mapIds()[-1])){
-      extent_df <- extentData()[[id]]
+    change_df <- data.frame()
+    for(id in as.character(mapIds())){
+      extent_df <- extentData()[[chk1(id, "2", id)]]
       row_df <- data.frame(time   = id,
                            id     = colnames(extent_df),
-                           open   = as.numeric(extent_df["opening", ]),
+                           open   = chk1(id, NA, as.numeric(extent_df["opening", ])),
                            close  = as.numeric(extent_df["closing", ]),
-                           change = as.numeric(extent_df["net change", ]))
+                           change = chk1(id, NA, as.numeric(extent_df["net change", ])))
       change_df <- rbind(change_df, row_df)
     }
     return(change_df)
