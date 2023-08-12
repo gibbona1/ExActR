@@ -2,12 +2,13 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-  }
+}
   
-  .sfdiv-item:not(:last-child) {
-    text-align: left;
-  }
+.sfdiv-item:not(:last-child){
+  text-align: left;
+}
   
-  .sfdiv-item:last-child {
+.sfdiv-item:last-child>:not(.leaflet){
     text-align: right;
-  }
+}
+
