@@ -127,9 +127,11 @@ uifunc <- function() {
                 checkboxInput("use_codes", "Use code lookup", value = FALSE))),
          )),
       fluidRow(
-       wellPanel("Colour mapping",
-                 uiOutput("colour_map")
-                 )
+       bsCollapse(
+         bsCollapsePanel("Colour mapping",
+                         uiOutput("colour_map")
+                         )
+       )
       ),
       fluidRow(
         column(12,
