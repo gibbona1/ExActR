@@ -47,12 +47,11 @@ plot_copy_group <- function(id){
   )
 }
 
-sfdiv <- function(...) div(..., class = "sfdiv-container")
+sfdiv  <- function(...) div(..., class = "sfdiv-container")
 sfdivi <- function(...) div(..., class = "sfdiv-item")
 
 #this keeps the overflow same as sfInput for good spacing
-input_group_div <- function(...)
-  div(..., class = "form-group shiny-input-container")
+input_group_div <- function(...) div(..., class = "shiny-input-container")
 
 sfInput <- function(name, lab){
   sfdivi(
@@ -104,8 +103,14 @@ uifunc <- function() {
           selectizeInput("sel_crs", "Select CRS", choices = NULL, width = "100%"),
         ),
         column(6,
-          actionButton("addTimePoint", label = "Add Time Point", icon = icon("plus-circle"), style = 'margin-top:25px'),
-          actionButton("delTimePoint", label = "Delete Time Point", icon = icon("minus-circle"), style = 'margin-top:25px'),
+          actionButton("addTimePoint", 
+                       label = "Add Time Point", 
+                       icon  = icon("plus-circle"), 
+                       style = 'margin-top:25px'),
+          actionButton("delTimePoint", 
+                       label = "Delete Time Point", 
+                       icon  = icon("minus-circle"), 
+                       style = 'margin-top:25px'),
           align = "right"
         ),
       ),
@@ -135,7 +140,7 @@ uifunc <- function() {
         hr(),
         wellPanel(
           style = "background: lightblue;",
-          HTML(paste0(tags$b("Note: "), "In the ", 
+          HTML(paste0(tags$b("Note: "), br(), "In the ", 
             tags$em("Ecosystem Type Change Matrix"), ":", br(),
             ul(
               li("The diagonal values are the amounts unchanged for that group."),
@@ -354,9 +359,9 @@ server <- function(input, output, session) {
       if(is.null(input[[sf_id]]))
         next
       sfRaws[[id]] <- setup_read_sf(input[[sf_id]])
-      sfs[[id]]    <- sfRaws[[paste0(id)]] %>% st_transform(as.numeric(input$sel_crs))
+      sfs[[id]]    <- sfRaws[[id]] %>% st_transform(as.numeric(input$sel_crs))
       #UI with dropdown for grouping of the datasets e.g. habitat codes
-      renderMapSel(paste0(id))
+      renderMapSel(id)
     }
   })
   
@@ -365,6 +370,7 @@ server <- function(input, output, session) {
       renderSfName(id, paste0("sf", id))
       renderLeafletPlot(id)
       renderMapPlot(id)
+      renderExpTable(paste0(id))
     }
   })
 
@@ -532,7 +538,8 @@ server <- function(input, output, session) {
   }
   
   output$extentPlots <- renderUI({
-    if(any(sapply(mapIds(), function(i) is.null(input[[paste0("sf", i)]]))))
+    req(input$gen_extent)
+    if(any(sapply(mapIds(), sf_null)))
       return(NULL)
     
     div(
@@ -567,8 +574,8 @@ server <- function(input, output, session) {
   output$plotStack <- renderPlot({
     df <- changeData() %>% 
       mutate(id   = code_lookup(id),
-             time = time_oc(time))
-    df$time <- factor(df$time, levels = unique(df$time))
+             time = time_oc(time)) %>%
+      mutate(time = factor(time, levels = unique(time)))
     p <- plots$plotStack <- df %>%
       ggplot() + 
       geom_bar_stack(aes(x = time, y = close, fill = id)) +
@@ -579,8 +586,9 @@ server <- function(input, output, session) {
     return(p)
   })
   
+  chng_time <- function(x) paste0(as.integer(x)-1, "-", x)
+  
   output$plotComp <- renderPlot({
-    chng_time <- function(x) paste0(as.integer(x)-1, "-", x)
     p <- plots$plotComp <-  changeData() %>% 
       filter(time >= 2) %>%
       mutate(id   = code_lookup(id),
@@ -624,17 +632,18 @@ server <- function(input, output, session) {
     )
   }
   
+  downloadPlotOutput <- function(plt){
+    output[[paste0("download_", plt)]]  <- render_download_bttn(plt)
+    return()
+  }
+  
   observe({
-    downloadPlotOutput <- function(plt){
-      output[[paste0("download_", plt)]]  <- render_download_bttn(plt)
-      return()
-    }
     for(plt in plot_names())
       downloadPlotOutput(plt)
   })
   
   output$habitatExplorer <- renderUI({
-    if(all(sapply(mapIds(), function(i) is.null(input[[paste0("sf", i)]]))))
+    if(all(sapply(mapIds(), sf_null)))
       return(NULL)
     
     do.call(div, 
@@ -655,19 +664,14 @@ server <- function(input, output, session) {
     return(exp_df)
   }
   
-  observe({
-    renderExpTable <- function(id){
-      output[[paste0("expTable", id)]] <- renderTable({
-        col  <- ifelse(id == "1", "open", "close")
-        time <- ifelse(id == "1", "2", id)
-        return(get_explore_table(time, col, changeData()))
-      }, sanitize.text.function = function(x) x)
-      return()
-    }
-    for(id in mapIds()){
-      renderExpTable(paste0(id))
-    }
-  })
+  renderExpTable <- function(id){
+    output[[paste0("expTable", id)]] <- renderTable({
+      col  <- ifelse(id == "1", "open", "close")
+      time <- ifelse(id == "1", "2", id)
+      return(get_explore_table(time, col, changeData()))
+    }, sanitize.text.function = function(x) x)
+    return()
+  }
 }
 
 shinyApp(uifunc(), server)
