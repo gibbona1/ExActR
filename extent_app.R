@@ -90,27 +90,13 @@ ul    <- tags$ul
 uifunc <- function() {
   fluidPage(
     useShinyjs(),
+    tags$head(
+      tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
+    ),
     titlePanel("Extent Account Creator"),
     tabsetPanel(
       {tabPanel("Extent Account",
       fluidRow(
-        tags$style(
-          HTML("
-            .sfdiv-container {
-              display: flex;
-              flex-direction: row;
-              justify-content: space-between;
-            }
-            
-            .sfdiv-item:not(:last-child) {
-              text-align: left;
-            }
-            
-            .sfdiv-item:last-child {
-              text-align: right;
-            }
-          ")
-        ),
         uiOutput("sf_group"),
       ),
       fluidRow(
