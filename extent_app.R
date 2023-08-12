@@ -379,7 +379,8 @@ server <- function(input, output, session) {
     do.call(div, 
             purrr::map(code_grp, 
                        ~ div(tags$b(.x), 
-                             colourInput(paste("colpicker", .x, sep = "_"),
+                             colourInput(paste("colpicker", 
+                                               gsub(" - ", "___", .x), sep = "_"),
                                          label = NULL, 
                                          value = vir_palette(.x)
                                          )
@@ -395,7 +396,7 @@ server <- function(input, output, session) {
     if(any(sapply(col_vec, is.null)) | any(col_vec == ""))
       palette <- "viridis"
     else
-      palette <- col_vec
+      palette <- gsub("___", " - ", col_vec)
     return(colorFactor(palette = palette, domain = code_grp))
   })
 
