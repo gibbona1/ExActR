@@ -283,44 +283,23 @@ server <- function(input, output, session) {
             )
   })
   
-  output$extentTable_group <- renderUI({
+  renderExtentObj <- function(tabname){
     req(input$gen_extent)
     if(any(sapply(mapIds(), sf_null)))
       return(NULL)
-    tabname  <- "extentTable"
-    do.call(sfdiv, 
-            purrr::map(as.character(mapIds()[-1]),
-                       ~ div(h5(tabtitle(.x, tabname)),
-                             extentObj(tabname, .x))
-                       )
-    )
-  })
-  
-  output$extentPercentTable_group <- renderUI({
-    req(input$gen_extent)
-    if(any(sapply(mapIds(), sf_null)))
-      return(NULL)
-    tabname  <- "extentPercentTable"
     do.call(sfdiv, 
             purrr::map(as.character(mapIds()[-1]),
                        ~ div(h5(tabtitle(.x, tabname)),
                              extentObj(tabname, .x))
             )
     )
-  })
+  }
   
-  output$extentMatrix_group <- renderUI({
-    req(input$gen_extent)
-    if(any(sapply(mapIds(), sf_null)))
-      return(NULL)
-    tabname  <- "extentMatrix"
-    do.call(sfdiv, 
-            purrr::map(as.character(mapIds()[-1]),
-                       ~ div(h5(tabtitle(.x, tabname)),
-                             extentObj(tabname, .x))
-            )
-    )
-  })
+  output$extentTable_group <- renderUI({renderExtentObj("extentTable")})
+  
+  output$extentPercentTable_group <- renderUI({renderExtentObj("extentPercentTable")})
+    
+  output$extentMatrix_group <- renderUI({renderExtentObj("extentMatrix")})
 
   # Read shapefiles and render other objects
   observe({
