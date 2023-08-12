@@ -157,6 +157,14 @@ uifunc <- function() {
               li("Each column is the unchanged areas plus the additions in area."),
               li("The sum of a row will equal the opening extent."),
               li("The sum of a column will equal the closing extent.")
+            ),
+            paste0("For ", tags$em("multiple time points"), ":"), br(),
+            ul(
+              li(HTML(paste("The", tags$em("(n)"), "time points are assumed to be in chronological order."))),
+              li(HTML(paste(tags$em("Opening (1)"), "being the first time point and", 
+                       tags$em("Closing (n)"), "being the last time point."))),
+              li(HTML(paste("The", tags$em("n-1"), "extent accounts tackle periods",
+                       tags$em("i-1"), "to", tags$em("i"), "for", tags$em("i=2,...,n"))))
             )
           ))
         )
