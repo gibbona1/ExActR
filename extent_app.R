@@ -1,5 +1,7 @@
 library(shiny)
 library(shinyjs)
+library(shinyBS)
+library(colourpicker)
 library(leaflet)
 library(sf)
 library(dplyr)
@@ -124,6 +126,11 @@ uifunc <- function() {
             ctd(align = "right", 
                 checkboxInput("use_codes", "Use code lookup", value = FALSE))),
          )),
+      fluidRow(
+       wellPanel("Colour mapping",
+                 uiOutput("colour_map")
+                 )
+      ),
       fluidRow(
         column(12,
         actionButton("gen_extent", "Generate/Refresh Extent", class = "btn-primary"),        
@@ -359,12 +366,37 @@ server <- function(input, output, session) {
     return(cols)
   })
 
+  output$colour_map <- renderUI({
+    code_grp <- codeGroups()
+    if(length(code_grp) == 0)
+      return(NULL)
+
+    vir_palette <- colorFactor(
+      palette = "viridis",
+      domain  = code_grp
+      )
+    
+    do.call(div, 
+            purrr::map(code_grp, 
+                       ~ div(tags$b(.x), 
+                             colourInput(paste("colpicker", .x, sep = "_"),
+                                         label = NULL, 
+                                         value = vir_palette(.x)
+                                         )
+                             )
+                       )
+            )
+  })
+  
   #common colour palette between the two maps for easier visualisation of groups
   plotCols <- reactive({
-    colorFactor(
-      palette = "viridis",
-      domain  = codeGroups()
-    )
+    code_grp <- codeGroups()
+    col_vec <- sapply(code_grp, function(x) input[[paste0("colpicker_", x)]])
+    if(any(sapply(col_vec, is.null)) | any(col_vec == ""))
+      palette <- "viridis"
+    else
+      palette <- col_vec
+    return(colorFactor(palette = palette, domain = code_grp))
   })
 
   # Render plots
