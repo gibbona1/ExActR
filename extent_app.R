@@ -266,7 +266,13 @@ server <- function(input, output, session) {
       return("")
   }
   
-  tabtitle <- function(x, nm) sprintf("%s (%d-%s)", nm, as.integer(x) - 1, x)
+  sf_title <- function(id, input) get_sf_name(input[[paste0("sf", id)]]$name)
+  
+  chng_time <- function(id, input)
+    sprintf("(%s - %s)", sf_title(as.integer(id)-1, input), sf_title(id, input))
+                                           
+  tabtitle <- function(id, nm, input)
+    return(sprintf("%s %s", nm, chng_time(id, input)))
   
   observeEvent(input$addTimePoint, {
     mapIds(c(mapIds(), length(mapIds()) + 1))
@@ -306,7 +312,7 @@ server <- function(input, output, session) {
       return(NULL)
     do.call(sfdiv, 
             purrr::map(as.character(mapIds()[-1]),
-                       ~ div(h5(tabtitle(.x, tabname)),
+                       ~ div(h5(tabtitle(.x, tabname, input)),
                              extentObj(tabname, .x))
             )
     )
@@ -557,17 +563,15 @@ server <- function(input, output, session) {
   geom_bar_stack <- function(mapping = NULL)
     geom_bar(mapping, position = "stack", stat = "identity")
   
-  time_oc <- function(time){
-    time_vec <- changeData()$time
-    res <- ifelse(time_vec == 1, "open", ifelse(time_vec == length(mapIds()), "close", ""))
-    res <- paste0(res, "(", time_vec, ")")
+  time_oc <- function(time_vec, input){
+    res <- paste0("(", time_vec, ") - ", sapply(time_vec, function(t) get_sf_name(input[[paste0("sf", t)]]$name)))
     return(res)
   }
   
   output$plotStack <- renderPlot({
     df <- changeData() %>% 
       mutate(id   = code_lookup(id),
-             time = time_oc(time)) %>%
+             time = time_oc(time, input)) %>%
       mutate(time = factor(time, levels = unique(time)))
     p <- plots$plotStack <- df %>%
       ggplot() + 
@@ -579,13 +583,11 @@ server <- function(input, output, session) {
     return(p)
   })
   
-  chng_time <- function(x) paste0(as.integer(x)-1, "-", x)
-  
   output$plotComp <- renderPlot({
     p <- plots$plotComp <-  changeData() %>% 
       filter(time >= 2) %>%
       mutate(id   = code_lookup(id),
-             time = chng_time(time)) %>%
+             time = sapply(time, chng_time, input)) %>%
       ggplot() + 
       geom_bar(aes(x = id, y = change, fill = id), stat = "identity") +
       coord_flip() +
@@ -643,7 +645,8 @@ server <- function(input, output, session) {
     
     do.call(div, 
             purrr::map(mapIds(),
-                       ~ div(h3(paste0(map_oc(.x, mapIds()), " Data (", .x, ")")),
+                       ~ div(h3(paste0(map_oc(.x, mapIds()), " Data (", .x, ") - ", 
+                                       get_sf_name(input[[paste0("sf", .x)]]$name))),
                              tableOutput(paste0("expTable", .x))))
             )
   })
