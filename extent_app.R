@@ -51,6 +51,12 @@ plot_copy_group <- function(id){
   )
 }
 
+repl_sp_da <- function(text) {
+  text <- gsub(" ", "_", text)
+  text <- gsub("-", "_", text)
+  return(text)
+}
+
 sfdiv  <- function(...) div(..., class = "sfdiv-container")
 sfdivi <- function(...) div(..., class = "sfdiv-item")
 
@@ -352,7 +358,7 @@ server <- function(input, output, session) {
     if(input$use_codes){
       df <- lookupData()
       check_codedf <- function(x)
-        ifelse(x %in% df[, 1], paste(x, "-", df[df[, 1] == x, 2]), x)
+        ifelse(x %in% df[, 1], paste(x, "-", df[df[, 1] == x, 2]), as.character(x))
       return(sapply(vec, check_codedf))
     } else {
       return(vec %>% as.character())
@@ -382,13 +388,10 @@ server <- function(input, output, session) {
     
     do.call(div, 
             purrr::map(code_grp, 
-                       ~ div(tags$b(.x), 
-                             colourInput(paste("colpicker", 
-                                               gsub(" - ", "___", .x), sep = "_"),
-                                         label = NULL, 
-                                         value = vir_palette(.x)
-                                         )
-                             )
+                       ~ colourInput(paste("colpicker", repl_sp_da(.x), sep = "_"),
+                                     label = .x,
+                                     value = vir_palette(.x)
+                                     )
                        )
             )
   })
@@ -396,11 +399,12 @@ server <- function(input, output, session) {
   #common colour palette between the two maps for easier visualisation of groups
   plotCols <- reactive({
     code_grp <- codeGroups()
-    col_vec <- sapply(code_grp, function(x) input[[paste0("colpicker_", x)]])
+    col_vec <- sapply(code_grp, function(x) input[[paste0("colpicker_", repl_sp_da(x))]])
+    
     if(any(sapply(col_vec, is.null)) | any(col_vec == ""))
       palette <- "viridis"
     else
-      palette <- gsub("___", " - ", col_vec)
+      palette <- col_vec
     return(colorFactor(palette = palette, domain = code_grp))
   })
 
