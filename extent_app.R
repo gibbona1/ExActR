@@ -365,7 +365,7 @@ server <- function(input, output, session) {
       if(!plot_wait(i))
         cols  <- union(cols, code_lookup(sfs[[paste0(i)]][[m_col]]))
     }
-    return(cols)
+    return(sort(cols))
   })
 
   output$colour_map <- renderUI({
@@ -592,12 +592,14 @@ server <- function(input, output, session) {
   })
   
   plot_extent <- function(data, col, name){
+    data    <- data %>% arrange(code_lookup(.data[[col]]))
+    col_map <- unique(plotCols()(code_lookup(data[[col]])))
     ggplot(data, aes(fill = code_lookup(.data[[col]]))) +
       geom_sf(color = NA) +
       labs(title = get_sf_name(name),
            fill  = "Ecosystem Type") + 
       theme_bw() + 
-      scale_fill_manual(values = plotCols()(code_lookup(data[[col]]))) +
+      scale_fill_manual(values = col_map) +
       coord_sf(crs = as.numeric(input$sel_crs))
   }
   
