@@ -22,6 +22,8 @@ default_crs <- 4326
 
 lookup_file <- "habitat_codes.csv"
 
+options(shiny.maxRequestSize = 256 * 1024 ^ 2)
+
 bold_rownames <- function(el) {
   tags$style(paste0("#", el, " td:first-child { font-weight: bold; }"))
 }
