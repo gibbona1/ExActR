@@ -236,7 +236,8 @@ server <- function(input, output, session) {
   #extract from a list and suppress  warnings e.g. NAs, geometry issue, for now
   lazy_unlist <- function(x) suppressWarnings(unlist(x))
   
-  get_sf_name <- function(x){
+  get_sf_name <- function(id, inp = input){
+    x <- inp[[paste0("sf",id)]]$name
     if(is.null(x))
       return(" ")
     return(strsplit(x, "\\.")[[1]][1])
@@ -251,8 +252,8 @@ server <- function(input, output, session) {
     return()
   }
   
-  renderSfName <- function(id, sf_id){
-    sf_name <- get_sf_name(input[[sf_id]]$name)
+  renderSfName <- function(id){
+    sf_name <- get_sf_name(id)
     output[[paste0("sf", id, "_name")]] <- renderText({sf_name})
     return()
   }
@@ -266,13 +267,11 @@ server <- function(input, output, session) {
       return("")
   }
   
-  sf_title <- function(id, input) get_sf_name(input[[paste0("sf", id)]]$name)
-  
-  chng_time <- function(id, input)
-    sprintf("(%s - %s)", sf_title(as.integer(id)-1, input), sf_title(id, input))
+  chng_time <- function(id)
+    sprintf("(%s - %s)", get_sf_name(as.integer(id)-1), get_sf_name(id))
                                            
-  tabtitle <- function(id, nm, input)
-    return(sprintf("%s %s", nm, chng_time(id, input)))
+  tabtitle <- function(id, nm)
+    return(sprintf("%s %s", nm, chng_time(id)))
   
   observeEvent(input$addTimePoint, {
     mapIds(c(mapIds(), length(mapIds()) + 1))
@@ -312,7 +311,7 @@ server <- function(input, output, session) {
       return(NULL)
     do.call(sfdiv, 
             purrr::map(as.character(mapIds()[-1]),
-                       ~ div(h5(tabtitle(.x, tabname, input)),
+                       ~ div(h5(tabtitle(.x, tabname)),
                              extentObj(tabname, .x))
             )
     )
@@ -340,7 +339,7 @@ server <- function(input, output, session) {
   
   observe({
     for(id in mapIds()){
-      renderSfName(id, paste0("sf", id))
+      renderSfName(id)
       renderLeafletPlot(id)
       renderMapPlot(id)
       renderExpTable(paste0(id))
@@ -563,15 +562,15 @@ server <- function(input, output, session) {
   geom_bar_stack <- function(mapping = NULL)
     geom_bar(mapping, position = "stack", stat = "identity")
   
-  time_oc <- function(time_vec, input){
-    res <- paste0("(", time_vec, ") - ", sapply(time_vec, function(t) get_sf_name(input[[paste0("sf", t)]]$name)))
+  time_oc <- function(time_vec){
+    res <- paste0("(", time_vec, ") - ", sapply(time_vec, get_sf_name))
     return(res)
   }
   
   output$plotStack <- renderPlot({
     df <- changeData() %>% 
       mutate(id   = code_lookup(id),
-             time = time_oc(time, input)) %>%
+             time = time_oc(time)) %>%
       mutate(time = factor(time, levels = unique(time)))
     p <- plots$plotStack <- df %>%
       ggplot() + 
@@ -587,7 +586,7 @@ server <- function(input, output, session) {
     p <- plots$plotComp <-  changeData() %>% 
       filter(time >= 2) %>%
       mutate(id   = code_lookup(id),
-             time = sapply(time, chng_time, input)) %>%
+             time = sapply(time, chng_time)) %>%
       ggplot() + 
       geom_bar(aes(x = id, y = change, fill = id), stat = "identity") +
       coord_flip() +
@@ -604,7 +603,7 @@ server <- function(input, output, session) {
     col_map <- unique(plotCols()(code_lookup(data[[col]])))
     ggplot(data, aes(fill = code_lookup(.data[[col]]))) +
       geom_sf(color = NA) +
-      labs(title = get_sf_name(name),
+      labs(title = name,
            fill  = "Ecosystem Type") + 
       theme_bw() + 
       scale_fill_manual(values = col_map) +
@@ -616,7 +615,7 @@ server <- function(input, output, session) {
     output[[m_id]] <- renderPlot({
       p <- plots[[m_id]] <- plot_extent(sfs[[paste0(id)]], 
                                         input[[paste0("map", id, "_sel_col")]], 
-                                        input[[paste0("sf", id)]]$name)
+                                        get_sf_name(id))
       return(p)
     })
     return()
@@ -646,7 +645,7 @@ server <- function(input, output, session) {
     do.call(div, 
             purrr::map(mapIds(),
                        ~ div(h3(paste0(map_oc(.x, mapIds()), " Data (", .x, ") - ", 
-                                       get_sf_name(input[[paste0("sf", .x)]]$name))),
+                                       get_sf_name(.x))),
                              tableOutput(paste0("expTable", .x))))
             )
   })
