@@ -6,6 +6,7 @@ library(leaflet)
 library(sf)
 library(dplyr)
 library(ggplot2)
+library(rmapshaper)
 
 #need to upload at least .shp, .shx, .dbf, .prj files for each
 #so the map knows where to put itself
@@ -154,6 +155,8 @@ uifunc <- function() {
         uiOutput("extentPercentTable_group"),
         h3("Ecosystem Type Change Matrix"),
         uiOutput("extentMatrix_group"),
+        h3("Change in land cover by group pair"),
+        uiOutput("extentPair_group"),
         hr(),
         includeHTML("www/notes.html")
       )
@@ -200,6 +203,9 @@ server <- function(input, output, session) {
       return(0)
     return(as.numeric(x))
   }
+  
+  #replace NAs and Infs with 0
+  clean_zero <- function(x) replace(x, is.na(x) | is.infinite(x), 0)
   
   clean_sum <- function(x) x %>% st_area() %>% blank_zero() %>% sum()
 
@@ -322,6 +328,8 @@ server <- function(input, output, session) {
   output$extentPercentTable_group <- renderUI({renderExtentObj("extentPercentTable")})
     
   output$extentMatrix_group <- renderUI({renderExtentObj("extentMatrix")})
+  
+  output$extentPair_group <- renderUI({renderExtentObj("extentPair")})
 
   # Read shapefiles and render other objects
   observe({
@@ -331,7 +339,9 @@ server <- function(input, output, session) {
       if(is.null(input[[sf_id]]))
         next
       sfRaws[[id]] <- setup_read_sf(input[[sf_id]])
-      sfs[[id]]    <- sfRaws[[id]] %>% st_transform(as.numeric(input$sel_crs))
+      sfs[[id]]    <- sfRaws[[id]] %>% 
+        st_transform(as.numeric(input$sel_crs))
+      
       #UI with dropdown for grouping of the datasets e.g. habitat codes
       renderMapSel(id)
     }
@@ -473,8 +483,7 @@ server <- function(input, output, session) {
       extent_df  <- extentData()[[id]]
       df <- as.data.frame(sapply(extent_df, function(x) x[2:4] / x[1]))
       rownames(df) <- rownames(extent_df)[2:4]
-      #replace NAs and Infs with 0
-      df <- apply(df, 2, function(x) replace(x, is.na(x) | is.infinite(x), 0))
+      df <- apply(df, 2, clean_zero)
       return(df)
     }, rownames = TRUE)
   }
@@ -524,6 +533,32 @@ server <- function(input, output, session) {
     }, rownames = TRUE)
   }
   
+  renderExtentPairTable <- function(id){
+    output[[paste("extentPair", id, sep = "_")]] <- renderTable({
+      ext_mat  <- extentMat()[[id]]
+      code_grp <- codeGroups()
+      
+      pair_df <- expand.grid(from = code_grp, to = code_grp)
+      pair_df <- pair_df[pair_df$from != pair_df$to,]
+
+      res <- sapply(1:nrow(pair_df), function(i) {
+        from <- pair_df[i, "from"]
+        to   <- pair_df[i, "to"]
+        return(ext_mat[from,to])
+      })
+      
+      pair_df <- pair_df %>% 
+        mutate(change = res,
+               perc   = change/sum(change)) %>%
+        mutate(across(c('change', 'perc'), round, 2))
+      total_df <- data.frame(from = "Total change", to = "", change = sum(pair_df$change), perc = 1.00)
+      pair_df <- rbind(pair_df, total_df)
+      colnames(pair_df) <- c("Change from", "Change to", "Area (Ha)", "% change")
+      
+      return(pair_df)
+    })
+  }
+  
   render_copybttns <- function(id, time){
     if(!input$gen_extent)
       return(NULL)
@@ -556,6 +591,7 @@ server <- function(input, output, session) {
       renderExtentTable(time)
       renderExtentPercentTable(time)
       renderExtentMatrix(time)
+      renderExtentPairTable(time)
     }
   })
   
