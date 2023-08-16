@@ -2,6 +2,7 @@ library(shiny)
 library(shinyjs)
 library(shinyBS)
 library(colourpicker)
+library(shinycssloaders)
 library(leaflet)
 library(sf)
 library(dplyr)
@@ -66,6 +67,7 @@ repl_sp_da <- function(text) {
   return(text)
 }
 
+my_spinner <- function(el) withSpinner(el, type = 1, color = "#228B22", color.background = "#FFFFFF")
 ui_nm <- function(id, name) div(h3(name), uiOutput(id))
 
 sfdiv  <- function(...) div(..., class = "sfdiv-container")
@@ -96,7 +98,7 @@ extentObj <- function(id, time, b_rnms = TRUE, b_lrow = FALSE){
     input_group_div(),
     bold_rownames(paste(id, time, sep = "_"), include = b_rnms),
     bold_lastrow(paste(id, time, sep = "_"), include = b_lrow),
-    tableOutput(paste(id, time, sep = "_")),
+    tableOutput(paste(id, time, sep = "_")) %>% my_spinner(),
     uiOutput(paste("copybttn", id, time, sep = "_")),
     class = "sfdiv-item"
   )
