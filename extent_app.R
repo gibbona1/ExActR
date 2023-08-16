@@ -66,6 +66,8 @@ repl_sp_da <- function(text) {
   return(text)
 }
 
+ui_nm <- function(id, name) div(h3(name), uiOutput(id))
+
 sfdiv  <- function(...) div(..., class = "sfdiv-container")
 sfdivi <- function(...) div(..., class = "sfdiv-item")
 
@@ -158,14 +160,10 @@ uifunc <- function() {
       ),
       fluidRow(
         tags$script(src = "copytable.js"),
-        h3("Extent table (Ha)"),
-        uiOutput("extentTable_group"),
-        h3("Extent table (% of opening)"),
-        uiOutput("extentPercentTable_group"),
-        h3("Ecosystem Type Change Matrix"),
-        uiOutput("extentMatrix_group"),
-        h3("Change in land cover by group pair"),
-        uiOutput("extentPair_group"),
+        ui_nm("extentTable_group", "Extent table (Ha)"),
+        ui_nm("extentPercentTable_group", "Extent table (% of opening)"),
+        ui_nm("extentMatrix_group", "Ecosystem Type Change Matrix"),
+        ui_nm("extentPair_group", "Change in land cover by group pair"),
         hr(),
         includeHTML("www/notes.html")
       )
