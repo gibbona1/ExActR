@@ -565,7 +565,7 @@ server <- function(input, output, session) {
       pair_df <- pair_df %>% 
         mutate(change = res,
                perc   = change/sum(change)) %>%
-        mutate(across(c('change', 'perc'), round, 2))
+        mutate(across(c('change', 'perc'), \(x) round(x, digits = 2)))
       total_df <- data.frame(from = "Total change", to = "", change = sum(pair_df$change), perc = 1.00)
       pair_df <- rbind(pair_df, total_df)
       colnames(pair_df) <- c("Change from", "Change to", "Area (Ha)", "% change")
