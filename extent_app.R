@@ -594,7 +594,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$gen_extent, {
     for(time in as.character(mapIds()[-1])){
-      for(tab in c("extentTable", "extentPercentTable", "extentMatrix")){
+      for(tab in c("extentTable", "extentPercentTable", "extentMatrix", "extentPair")){
         coppybttnOutput(tab, time)
       }
       renderExtentTable(time)
