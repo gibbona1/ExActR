@@ -68,7 +68,11 @@ repl_sp_da <- function(text) {
 }
 
 my_spinner <- function(el) withSpinner(el, type = 1, color = "#228B22", color.background = "#FFFFFF")
-ui_nm <- function(id, name) div(h3(name), uiOutput(id))
+ui_nm <- function(id, name, include = TRUE) div(h3(name), 
+                                checkboxInput(paste0("include_", id),
+                                              label = paste("Include", name),
+                                              value = include),
+                                uiOutput(id))
 
 sfdiv  <- function(...) div(..., class = "sfdiv-container")
 sfdivi <- function(...) div(..., class = "sfdiv-item")
@@ -165,7 +169,7 @@ uifunc <- function() {
         ui_nm("extentTable_group", "Extent table (Ha)"),
         ui_nm("extentPercentTable_group", "Extent table (% of opening)"),
         ui_nm("extentMatrix_group", "Ecosystem Type Change Matrix"),
-        ui_nm("extentPair_group", "Change in land cover by group pair"),
+        ui_nm("extentPair_group", "Change in land cover by group pair", include = FALSE),
         hr(),
         includeHTML("www/notes.html")
       )
@@ -323,6 +327,8 @@ server <- function(input, output, session) {
   renderExtentObj <- function(tabname, b_rnms = TRUE, b_lrow = FALSE){
     req(input$gen_extent)
     if(any(sapply(mapIds(), sf_null)))
+      return(NULL)
+    if(!input[[paste0("include_", tabname, "_group")]])
       return(NULL)
     do.call(sfdiv, 
             purrr::map(as.character(mapIds()[-1]),
