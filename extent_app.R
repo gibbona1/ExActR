@@ -624,7 +624,7 @@ server <- function(input, output, session) {
       scale_fill_manual(values = plotCols()(code_lookup(df$id))) +
       ylab("Area (Ha)") +
       xlab("") + theme_classic()
-    return(p)
+    print(p)
   })
   
   output$plotComp <- renderPlot({
@@ -640,19 +640,20 @@ server <- function(input, output, session) {
       ylab("Area change (Ha)") +
       xlab("") + theme_classic() +
       facet_grid(vars(time))
-    return(p)
+    print(p)
   })
   
   plot_extent <- function(data, col, name){
     data    <- data %>% arrange(code_lookup(.data[[col]]))
     col_map <- unique(plotCols()(code_lookup(data[[col]])))
-    ggplot(data, aes(fill = code_lookup(.data[[col]]))) +
+    p <- ggplot(data, aes(fill = code_lookup(.data[[col]]))) +
       geom_sf(color = NA) +
       labs(title = name,
            fill  = "Ecosystem Type") + 
       theme_bw() + 
       scale_fill_manual(values = col_map) +
       coord_sf(crs = as.numeric(input$sel_crs))
+    print(p)
   }
   
   renderMapPlot <- function(id){
@@ -661,7 +662,7 @@ server <- function(input, output, session) {
       p <- plots[[m_id]] <- plot_extent(sfs[[paste0(id)]], 
                                         input[[paste0("map", id, "_sel_col")]], 
                                         get_sf_name(id))
-      return(p)
+      print(p)
     })
     return()
   }
