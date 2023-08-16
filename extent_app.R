@@ -25,8 +25,16 @@ lookup_file <- "habitat_codes.csv"
 
 options(shiny.maxRequestSize = 256 * 1024 ^ 2)
 
-bold_rownames <- function(el) {
+bold_rownames <- function(el, include = TRUE) {
+  if(!include)
+    return(NULL)
   tags$style(paste0("#", el, " td:first-child { font-weight: bold; }"))
+}
+
+bold_lastrow <- function(el, include = TRUE) {
+  if(!include)
+    return(NULL)
+  tags$style(paste0("#", el, " tr:last-child { font-weight: bold; }"))
 }
 
 copy_button <- function(id, format, formatLab){
@@ -81,10 +89,11 @@ sfMapOutput <- function(name, id){
   )
 }
 
-extentObj <- function(id, time){
+extentObj <- function(id, time, b_rnms = TRUE, b_lrow = FALSE){
   wellPanel(
     input_group_div(),
-    bold_rownames(paste(id, time, sep = "_")),
+    bold_rownames(paste(id, time, sep = "_"), include = b_rnms),
+    bold_lastrow(paste(id, time, sep = "_"), include = b_lrow),
     tableOutput(paste(id, time, sep = "_")),
     uiOutput(paste("copybttn", id, time, sep = "_")),
     class = "sfdiv-item"
@@ -311,14 +320,14 @@ server <- function(input, output, session) {
             )
   })
   
-  renderExtentObj <- function(tabname){
+  renderExtentObj <- function(tabname, b_rnms = TRUE, b_lrow = FALSE){
     req(input$gen_extent)
     if(any(sapply(mapIds(), sf_null)))
       return(NULL)
     do.call(sfdiv, 
             purrr::map(as.character(mapIds()[-1]),
                        ~ div(h5(tabtitle(.x, tabname)),
-                             extentObj(tabname, .x))
+                             extentObj(tabname, .x, b_rnms, b_lrow))
             )
     )
   }
@@ -329,7 +338,7 @@ server <- function(input, output, session) {
     
   output$extentMatrix_group <- renderUI({renderExtentObj("extentMatrix")})
   
-  output$extentPair_group <- renderUI({renderExtentObj("extentPair")})
+  output$extentPair_group <- renderUI({renderExtentObj("extentPair", b_rnms = FALSE, b_lrow = TRUE)})
 
   # Read shapefiles and render other objects
   observe({
