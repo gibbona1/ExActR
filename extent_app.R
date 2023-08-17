@@ -92,7 +92,8 @@ sfMapOutput <- function(name, id){
     input_group_div(),
     h3(paste(name, "Map", paste0("(", id, ")"))),
     leafletOutput(paste0("plot", id)),
-    uiOutput(paste0("map", id, "col"))
+    uiOutput(paste0("map", id, "col")),
+    checkboxInput(paste0("map", id, "_include"), "Include Leaflet Plot", value = TRUE)
   )
 }
 
@@ -440,8 +441,8 @@ server <- function(input, output, session) {
   # Render plots
   renderLeafletPlot <- function(id){
     output[[paste0("plot", id)]] <- renderLeaflet({
-      if(plot_wait(id))
-        return(leaflet() %>% setView(lng = 10*id, lat = 0, zoom = 2))
+      if(plot_wait(id) | !input[[paste0("map", id, "_include")]])
+      return(leaflet() %>% setView(lng = 10*id, lat = 0, zoom = 2))
       else
         return(gen_map_leaflet(sfs[[paste0(id)]], input[[paste0("map", id, "_sel_col")]]))
     })
