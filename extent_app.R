@@ -7,7 +7,6 @@ library(leaflet)
 library(sf)
 library(dplyr)
 library(ggplot2)
-library(rmapshaper)
 
 #need to upload at least .shp, .shx, .dbf, .prj files for each
 #so the map knows where to put itself
@@ -517,19 +516,26 @@ server <- function(input, output, session) {
       df2 <- sfs[[paste0(id)]]
   
       code_grps <- codeGroups()
-  
-      cross_area <- function(grp1, grp2) {
-        df1_sub <- filter(df1, (df1[[input[[sprintf("map%s_sel_col", id-1)]]]] %>% code_lookup) == grp1)
-        df2_sub <- filter(df2, (df2[[input[[sprintf("map%s_sel_col", id)]]]] %>% code_lookup) == grp2)
-        st_intersection(df1_sub$geometry, df2_sub$geometry) %>% clean_sum()
-      }
-  
-      cross_mat <- do.call(rbind, lapply(code_grps, function(grp1) {
-        sapply(code_grps, function(grp2) lazy_unlist(cross_area(grp1, grp2)))
-      }))
-  
+      
+      grp_col1 <- input[[sprintf("map%s_sel_col", id-1)]]
+      grp_col2 <- input[[sprintf("map%s_sel_col", id)]]
+      
+      #I think it's faster to intersect everything up front and then lookup
+      df_int <- st_intersection(df1, df2)
+      
+      cross_mat <- do.call(rbind, 
+              lapply(code_grps, function(grp1) {
+                res <- sapply(code_grps, function(grp2) {
+                  df_int %>%
+                    filter((df_int[[grp_col1]] == grp1) & (df_int[[grp_col2]] == grp2)) %>%
+                    st_make_valid() %>% clean_sum() %>% lazy_unlist()
+                })
+                return(res)
+              })
+      )
+      
       rownames(cross_mat) <- colnames(cross_mat) <- code_grps
-  
+    
       cross_mat <- cross_mat / 10^4
   
       cross_df  <- as.data.frame(cross_mat)
