@@ -512,8 +512,8 @@ server <- function(input, output, session) {
     res_l <- list()
     
     for(id in mapIds()[-1]){
-      df1 <- sfs[[paste0(id - 1)]]
-      df2 <- sfs[[paste0(id)]]
+      df1 <- sfs[[paste0(id - 1)]] %>% st_make_valid()
+      df2 <- sfs[[paste0(id)]] %>% st_make_valid()
   
       code_grps <- codeGroups()
       
