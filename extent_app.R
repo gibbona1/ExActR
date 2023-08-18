@@ -11,15 +11,22 @@ library(ggplot2)
 #need to upload at least .shp, .shx, .dbf, .prj files for each
 #so the map knows where to put itself
 map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
-#TODO: multiple time points:
-## make combined data with index for each time point
-## plots: land use histograms (nominal, percent)
-##        difference in land use time 1-2, time 2-3, etc (nominal, percent)
+#TODO: 
+## Select grouping column arrow on LHS for rightmost timepoint
+## make maps take up close to 50% width
+## select CRS width
+## maps should have toggle ability for codes - mapview?
+## copy buttons back on LHS
+## dashboard sidebar, header with info etc
+## nicer UI e.g. https://github.com/Appsilon/shiny.semantic
+## choose colour palette, theme (bootstrap) button status etc
+## unit tests
+## informative errors
 
-crs_data <- suppressWarnings(rgdal::make_EPSG(file))
+crs_data <- rgdal::make_EPSG()
 crs_list <- crs_data$code
 names(crs_list) <- paste(paste0("EPSG:", crs_list), crs_data$note, sep = " - ")
-default_crs <- 4326
+default_crs     <- 4326
 
 lookup_file <- "habitat_codes.csv"
 
