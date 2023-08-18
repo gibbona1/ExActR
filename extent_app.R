@@ -74,6 +74,7 @@ repl_sp_da <- function(text) {
 }
 
 my_spinner <- function(el) withSpinner(el, type = 1, color = "#228B22", color.background = "#FFFFFF")
+
 ui_nm <- function(id, name, include = TRUE) div(h3(name), 
                                 checkboxInput(paste0("include_", id),
                                               label = paste("Include", name),
@@ -94,7 +95,7 @@ sfInput <- function(name, lab){
     )
 }
 
-sfMapOutput <- function(name, id){
+sfMapOutput <- function(id, name = map_oc(id)){
   sfdivi(
     input_group_div(),
     h3(paste(name, "Map", paste0("(", id, ")"))),
@@ -191,7 +192,7 @@ uifunc <- function() {
 
 server <- function(input, output, session) {
   plots  <- reactiveValues()
-  mapIds <- reactiveVal(c(1, 2))
+  mapIds <- reactiveVal(1:2)
   sfRaws <- reactiveValues()
   sfs    <- reactiveValues()
   
@@ -262,8 +263,10 @@ server <- function(input, output, session) {
   #extract from a list and suppress  warnings e.g. NAs, geometry issue, for now
   lazy_unlist <- function(x) suppressWarnings(unlist(x))
   
+  sfid <- function(id, ...) paste0("sf", id, ...)
+  
   get_sf_name <- function(id, inp = input){
-    x <- inp[[paste0("sf",id)]]$name
+    x <- inp[[sfid(id)]]$name
     if(is.null(x))
       return(" ")
     return(strsplit(x, "\\.")[[1]][1])
@@ -280,7 +283,7 @@ server <- function(input, output, session) {
   
   renderSfName <- function(id){
     sf_name <- get_sf_name(id)
-    output[[paste0("sf", id, "_name")]] <- renderText({sf_name})
+    output[[sfid(id, "_name")]] <- renderText({sf_name})
     return()
   }
   
@@ -296,8 +299,7 @@ server <- function(input, output, session) {
   chng_time <- function(id)
     sprintf("(%s - %s)", get_sf_name(as.integer(id)-1), get_sf_name(id))
                                            
-  tabtitle <- function(id, nm)
-    return(sprintf("%s %s", nm, chng_time(id)))
+  tabtitle <- function(id, nm) return(paste(nm, chng_time(id)))
   
   observeEvent(input$addTimePoint, {
     mapIds(c(mapIds(), length(mapIds()) + 1))
@@ -318,7 +320,7 @@ server <- function(input, output, session) {
     
     do.call(sfdiv, 
             purrr::map(mapIds(),
-              ~ sfInput(paste0("sf", .x), mapTitle(.x))
+              ~ sfInput(sfid(.x), mapTitle(.x))
               )
             )
   })
@@ -326,7 +328,7 @@ server <- function(input, output, session) {
   output$sf_map_group <- renderUI({
     do.call(sfdiv, 
             purrr::map(mapIds(),
-              ~ sfMapOutput(map_oc(.x), .x)
+              ~ sfMapOutput(.x)
               )
             )
   })
@@ -355,9 +357,8 @@ server <- function(input, output, session) {
 
   # Read shapefiles and render other objects
   observe({
-    for(id in mapIds()){
-      id    <- paste0(id)
-      sf_id <- paste0("sf", id)
+    for(id in as.character(mapIds())){
+      sf_id <- sfid(id)
       if(is.null(input[[sf_id]]))
         next
       sfRaws[[id]] <- setup_read_sf(input[[sf_id]])
@@ -389,7 +390,7 @@ server <- function(input, output, session) {
 
   #if the sf data or selectInput are not ready, wait
   plot_wait <- function(id) 
-    return(is.null(input[[paste0("sf", id)]]) | is.null(input[[paste0("map", id, "_sel_col")]]))
+    return(is.null(input[[sfid(id)]]) | is.null(input[[paste0("map", id, "_sel_col")]]))
   
   code_lookup <- function(vec){
     if(input$use_codes){
@@ -488,7 +489,7 @@ server <- function(input, output, session) {
     return(change_df)
   })
   
-  sf_null <- function(i) is.null(input[[paste0("sf", i)]])
+  sf_null <- function(i) is.null(input[[sfid(i)]])
   
   renderExtentTable <- function(id){
     output[[paste("extentTable", id, sep = "_")]] <- renderTable({
