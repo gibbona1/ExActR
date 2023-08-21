@@ -10,5 +10,6 @@
   
 .sfdiv-item:last-child>:not(.leaflet){
     text-align: right;
+    direction: rtl;
 }
 
