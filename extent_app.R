@@ -12,11 +12,9 @@ library(ggplot2)
 #so the map knows where to put itself
 map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
 #TODO: 
-## Select grouping column arrow on LHS for rightmost timepoint
 ## make maps take up close to 50% width
 ## select CRS width
 ## maps should have toggle ability for codes - mapview?
-## copy buttons back on LHS
 ## dashboard sidebar, header with info etc
 ## nicer UI e.g. https://github.com/Appsilon/shiny.semantic
 ## choose colour palette, theme (bootstrap) button status etc
@@ -54,7 +52,8 @@ copy_button_group <- function(id, time, idt = paste(id, time, sep = "_")){
   div(
     copy_button(idt, "text",  "Text"),
     copy_button(idt, "html",  "HTML"),
-    copy_button(idt, "latex", "LaTeX")
+    copy_button(idt, "latex", "LaTeX"),
+    class = "div-copybttns"
   )
 }
 

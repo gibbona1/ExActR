@@ -8,8 +8,15 @@
   text-align: left;
 }
   
-.sfdiv-item:last-child>:not(.leaflet){
+.sfdiv-item:last-child>:not(.leaflet, .table, .div-copybttns){
     text-align: right;
-    direction: rtl;
+}
+
+.sfdiv-item:last-child> select{
+  direction: rtl;
+}
+
+.div-copybttns {
+  text-align: left;
 }
 
