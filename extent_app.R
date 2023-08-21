@@ -356,17 +356,17 @@ server <- function(input, output, session) {
 
   # Read shapefiles and render other objects
   observe({
-    for(id in as.character(mapIds())){
+    lapply(as.character(mapIds()), function(id) {
       sf_id <- sfid(id)
-      if(is.null(input[[sf_id]]))
-        next
+      observeEvent(input[[sf_id]], {
       sfRaws[[id]] <- setup_read_sf(input[[sf_id]])
       sfs[[id]]    <- sfRaws[[id]] %>% 
         st_transform(as.numeric(input$sel_crs))
       
       #UI with dropdown for grouping of the datasets e.g. habitat codes
       renderMapSel(id)
-    }
+      })
+    })
   })
   
   observe({
