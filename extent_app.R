@@ -95,7 +95,7 @@ sfInput <- function(name, lab){
     )
 }
 
-sfMapOutput <- function(id, name = map_oc(id)){
+sfMapOutput <- function(id, name){
   sfdivi(
     input_group_div(),
     h3(paste(name, "Map", paste0("(", id, ")"))),
@@ -328,7 +328,7 @@ server <- function(input, output, session) {
   output$sf_map_group <- renderUI({
     do.call(sfdiv, 
             purrr::map(mapIds(),
-              ~ sfMapOutput(.x)
+              ~ sfMapOutput(.x, map_oc(.x))
               )
             )
   })
