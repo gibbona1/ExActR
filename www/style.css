@@ -6,12 +6,12 @@
 }
 
 .sfdiv-item:not(:first-child){
-  padding-left: 5%;
+  padding-left: 2%;
 }
 
 .sfdiv-item:not(:last-child){
   text-align: left;
-  padding-right: 5%;
+  padding-right: 2%;
 }
   
 .sfdiv-item:last-child>:not(.leaflet, .table, .div-copybttns){

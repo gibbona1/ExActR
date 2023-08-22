@@ -89,9 +89,9 @@ sfdivi <- function(...) div(..., class = "sfdiv-item")
 #this keeps the overflow same as sfInput for good spacing
 input_group_div <- function() div(class = "shiny-input-container")
 
-sfInput <- function(id, in_name, in_lab, out_name){
+sfInput <- function(id, in_name, in_lab, out_name, width = NULL){
   sfdivi(
-    fileInput(in_name, in_lab, accept = map_accepts, multiple = TRUE, width = "400px"),
+    fileInput(in_name, in_lab, accept = map_accepts, multiple = TRUE, width = width),
     tags$style("white-space: pre-wrap;"),
     verbatimTextOutput(paste(in_name, "name", sep = "_")),
     input_group_div(),
@@ -128,6 +128,17 @@ uifunc <- function() {
     tags$head(
       tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
     ),
+    tags$head(tags$script('
+        var window_width = 0;
+        $(document).on("shiny:connected", function(e) {
+            window_width = window.innerWidth;
+            Shiny.onInputChange("window_width", window_width);
+        });
+        $(window).resize(function(e) {
+            window_width = window.innerWidth;
+            Shiny.onInputChange("window_width", window_width);
+        });
+    ')),
     tabsetPanel(
       {tabPanel("Extent Account",
       fluidRow(
@@ -313,12 +324,17 @@ server <- function(input, output, session) {
   })
   
   output$sf_group <- renderUI({
+    if(!is.null(input$window_width))
+      width <- paste0(floor(0.4*input$window_width), "px")
+    else
+      width <- NULL
     mapTitle <- function(idx, inp = mapIds()) 
       paste("Upload", map_oc(idx, inp), "Map", paste0("(", idx, ")"))
     
     do.call(sfdiv, 
             purrr::map(mapIds(),
-              ~ sfInput(.x, sfid(.x), mapTitle(.x), map_oc(.x))
+              ~ sfInput(.x, sfid(.x), mapTitle(.x), map_oc(.x), 
+                        width = width)
               )
             )
   })
