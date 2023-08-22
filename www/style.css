@@ -1,7 +1,7 @@
 .sfdiv-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
   
 .sfdiv-item:not(:last-child){
@@ -9,7 +9,9 @@
 }
   
 .sfdiv-item:last-child>:not(.leaflet, .table, .div-copybttns){
-    text-align: right;
+  text-align: right;
+  margin-left: auto; 
+  margin-right: 0;
 }
 
 .sfdiv-item:last-child> select{

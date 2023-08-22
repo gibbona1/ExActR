@@ -89,7 +89,7 @@ input_group_div <- function() div(class = "shiny-input-container")
 
 sfInput <- function(name, lab){
   sfdivi(
-    fileInput(name, lab, accept = map_accepts, multiple = TRUE),
+    fileInput(name, lab, accept = map_accepts, multiple = TRUE, width = "100%"),
     tags$style("white-space: pre-wrap;"),
     verbatimTextOutput(paste(name, "name", sep = "_"))
     )
@@ -137,6 +137,9 @@ uifunc <- function() {
         uiOutput("sf_group"),
       ),
       fluidRow(
+        uiOutput("sf_map_group")
+      ),
+      fluidRow(
         column(6,
           selectizeInput("sel_crs", "Select CRS", choices = NULL, width = "100%"),
         ),
@@ -151,9 +154,6 @@ uifunc <- function() {
                        style = 'margin-top:25px'),
           align = "right"
         ),
-      ),
-      fluidRow(
-        uiOutput("sf_map_group")
       ),
       fluidRow(
         table(style = "width: 100%",
