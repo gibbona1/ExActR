@@ -43,6 +43,8 @@ bold_lastrow <- function(el, include = TRUE) {
   tags$style(paste0("#", el, " tr:last-child { font-weight: bold; }"))
 }
 
+sfid <- function(id, ...) paste0("sf", id, ...)
+
 copy_button <- function(id, format, formatLab){
   return(actionButton(paste("copy", id, format, sep = "_"), 
                       paste("Copy as", formatLab), 
@@ -87,22 +89,17 @@ sfdivi <- function(...) div(..., class = "sfdiv-item")
 #this keeps the overflow same as sfInput for good spacing
 input_group_div <- function() div(class = "shiny-input-container")
 
-sfInput <- function(name, lab){
+sfInput <- function(id, in_name, in_lab, out_name){
   sfdivi(
-    fileInput(name, lab, accept = map_accepts, multiple = TRUE, width = "100%"),
+    fileInput(in_name, in_lab, accept = map_accepts, multiple = TRUE),
     tags$style("white-space: pre-wrap;"),
-    verbatimTextOutput(paste(name, "name", sep = "_"))
-    )
-}
-
-sfMapOutput <- function(id, name){
-  sfdivi(
+    verbatimTextOutput(paste(in_name, "name", sep = "_")),
     input_group_div(),
-    h3(paste(name, "Map", paste0("(", id, ")"))),
+    h3(paste(out_name, "Map", paste0("(", id, ")"))),
     leafletOutput(paste0("plot", id)),
     uiOutput(paste0("map", id, "col")),
     checkboxInput(paste0("map", id, "_include"), "Include Leaflet Plot", value = TRUE)
-  )
+    )
 }
 
 extentObj <- function(id, time, b_rnms = TRUE, b_lrow = FALSE){
@@ -135,9 +132,6 @@ uifunc <- function() {
       {tabPanel("Extent Account",
       fluidRow(
         uiOutput("sf_group"),
-      ),
-      fluidRow(
-        uiOutput("sf_map_group")
       ),
       fluidRow(
         column(6,
@@ -269,8 +263,6 @@ server <- function(input, output, session) {
   #extract from a list and suppress  warnings e.g. NAs, geometry issue, for now
   lazy_unlist <- function(x) suppressWarnings(unlist(x))
   
-  sfid <- function(id, ...) paste0("sf", id, ...)
-  
   get_sf_name <- function(id, inp = input){
     x <- inp[[sfid(id)]]$name
     if(is.null(x))
@@ -326,15 +318,7 @@ server <- function(input, output, session) {
     
     do.call(sfdiv, 
             purrr::map(mapIds(),
-              ~ sfInput(sfid(.x), mapTitle(.x))
-              )
-            )
-  })
-  
-  output$sf_map_group <- renderUI({
-    do.call(sfdiv, 
-            purrr::map(mapIds(),
-              ~ sfMapOutput(.x, map_oc(.x))
+              ~ sfInput(.x, sfid(.x), mapTitle(.x), map_oc(.x))
               )
             )
   })

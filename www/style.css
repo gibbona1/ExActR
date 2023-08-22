@@ -3,7 +3,7 @@
   flex-direction: row;
   justify-content: space-between;
 }
-  
+
 .sfdiv-item:not(:last-child){
   text-align: left;
 }
@@ -22,3 +22,6 @@
   text-align: left;
 }
 
+.content-wrapper {
+  overflow: auto;
+}
