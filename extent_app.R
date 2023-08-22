@@ -1,6 +1,7 @@
 library(shiny)
 library(shinyjs)
 library(shinyBS)
+library(shinydashboard)
 library(colourpicker)
 library(shinycssloaders)
 library(leaflet)
@@ -122,12 +123,14 @@ li    <- tags$li
 ul    <- tags$ul
 
 uifunc <- function() {
-  fluidPage(
+  dashboardPage(
+    header  = dashboardHeader(title = "Extent Account Creator", titleWidth = "300px"),
+    sidebar = dashboardSidebar(disable = TRUE),
+    body    = dashboardBody(
     useShinyjs(),
     tags$head(
       tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
     ),
-    titlePanel("Extent Account Creator"),
     tabsetPanel(
       {tabPanel("Extent Account",
       fluidRow(
@@ -186,6 +189,8 @@ uifunc <- function() {
       {tabPanel("Habitat Explorer",
                 uiOutput("habitatExplorer"))}
     )
+    ),
+    skin = "green"
   )
 }
 
