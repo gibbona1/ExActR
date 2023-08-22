@@ -2,10 +2,16 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  overflow-x: scroll;
+}
+
+.sfdiv-item:not(:first-child){
+  padding-left: 5%;
 }
 
 .sfdiv-item:not(:last-child){
   text-align: left;
+  padding-right: 5%;
 }
   
 .sfdiv-item:last-child>:not(.leaflet, .table, .div-copybttns){

@@ -91,7 +91,7 @@ input_group_div <- function() div(class = "shiny-input-container")
 
 sfInput <- function(id, in_name, in_lab, out_name){
   sfdivi(
-    fileInput(in_name, in_lab, accept = map_accepts, multiple = TRUE),
+    fileInput(in_name, in_lab, accept = map_accepts, multiple = TRUE, width = "400px"),
     tags$style("white-space: pre-wrap;"),
     verbatimTextOutput(paste(in_name, "name", sep = "_")),
     input_group_div(),
