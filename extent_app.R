@@ -420,13 +420,15 @@ server <- function(input, output, session) {
     for(i in mapIds()){
       m_col <- input[[paste0("map", i, "_sel_col")]]
       if(!plot_wait(i))
-        cols  <- union(cols, code_lookup(sfs[[paste0(i)]][[m_col]]))
+        cols  <- union(cols, sfs[[paste0(i)]][[m_col]])
     }
     return(sort(cols))
   })
+  
+  codeGroupsLookup <- reactive({code_lookup(codeGroups())})
 
   output$colour_map <- renderUI({
-    code_grp <- codeGroups()
+    code_grp <- codeGroupsLookup()
     if(length(code_grp) == 0)
       return(NULL)
 
@@ -447,7 +449,7 @@ server <- function(input, output, session) {
   
   #common colour palette between the two maps for easier visualisation of groups
   plotCols <- reactive({
-    code_grp <- codeGroups()
+    code_grp <- codeGroupsLookup()
     col_vec <- sapply(code_grp, function(x) input[[paste0("colpicker_", repl_sp_da(x))]])
     
     if(any(sapply(col_vec, is.null)) | any(col_vec == ""))
@@ -473,7 +475,9 @@ server <- function(input, output, session) {
     
     #get opening, closing, changes for each code  from extent change matrix
     res_list <- lapply(as.character(mapIds()[-1]), function(i) {
-      as.data.frame(sapply(codeGroups(), change_area, extentMat()[[i]]))
+      df <- as.data.frame(sapply(codeGroups(), change_area, extentMat()[[i]]))
+      colnames(df) <- codeGroupsLookup()
+      return(df)
     })
     names(res_list) <- as.character(mapIds()[-1])
     return(res_list)
@@ -570,7 +574,11 @@ server <- function(input, output, session) {
 
   renderExtentMatrix <- function(id){
     output[[paste("extentMatrix", id, sep = "_")]] <- renderTable({
-      extentMat()[[id]]
+      code_grps <- codeGroupsLookup()
+      ext_mat <- extentMat()[[id]]
+      colnames(ext_mat)[1:length(code_grps)] <- code_grps
+      rownames(ext_mat)[1:length(code_grps)] <- code_grps
+      return(ext_mat)
     }, rownames = TRUE)
   }
   
@@ -589,7 +597,9 @@ server <- function(input, output, session) {
       })
       
       pair_df <- pair_df %>% 
-        mutate(change = res,
+        mutate(from   = code_lookup(from),
+               to     = code_lookup(to),
+               change = res,
                perc   = change/sum(change)) %>%
         mutate(across(c('change', 'perc'), \(x) round(x, digits = 2)))
       total_df <- data.frame(from = "Total change", to = "", change = sum(pair_df$change), perc = 1.00)
