@@ -323,11 +323,15 @@ server <- function(input, output, session) {
     return()
   })
   
-  output$sf_group <- renderUI({
+  get_window_width <- function(x){
     if(!is.null(input$window_width))
-      width <- paste0(floor(0.4*input$window_width), "px")
+      return(paste0(floor(0.4*input$window_width), "px"))
     else
-      width <- NULL
+      return(NULL)
+  }
+  
+  output$sf_group <- renderUI({
+    width <- get_window_width(input$window_width)
     mapTitle <- function(idx, inp = mapIds()) 
       paste("Upload", map_oc(idx, inp), "Map", paste0("(", idx, ")"))
     
