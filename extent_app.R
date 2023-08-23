@@ -13,10 +13,16 @@ library(ggplot2)
 #so the map knows where to put itself
 map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
 #TODO: 
-## make maps take up close to 50% width
-## select CRS width
+## position of CRS select, add delete butons, lookup elements, other options
+## possible other small options
+## - sf use s2
+## - change verbatim output of time period "name" and all subsequeny mentions
+## instruction tab
 ## maps should have toggle ability for codes - mapview?
+## check if projection or sf_use_s2(FALSE) impacts areas
+## (common) legend outside of map and fully visible
 ## dashboard sidebar, header with info etc
+## - what info do we include (will GitHub be public?)
 ## nicer UI e.g. https://github.com/Appsilon/shiny.semantic
 ## choose colour palette, theme (bootstrap) button status etc
 ## unit tests
