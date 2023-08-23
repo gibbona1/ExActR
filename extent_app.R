@@ -352,7 +352,7 @@ server <- function(input, output, session) {
       return(NULL)
     do.call(sfdiv, 
             purrr::map(as.character(mapIds()[-1]),
-                       ~ div(h5(tabtitle(.x, tabname)),
+                       ~ sfdivi(h5(tabtitle(.x, tabname)),
                              extentObj(tabname, .x, b_rnms, b_lrow))
             )
     )
