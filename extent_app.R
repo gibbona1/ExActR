@@ -284,8 +284,9 @@ server <- function(input, output, session) {
   #selectInput for what column of sf data to colour in the map and for accounts
   renderMapSel <- function(id){
     output[[paste0("map", id, "col")]] <- renderUI({
-      selectInput(sprintf("map%s_sel_col", id), "Select Grouping Column", 
-                  choices = names(sfRaws[[id]]))
+      selectizeInput(sprintf("map%s_sel_col", id), "Select Grouping Column", 
+                     options = list(dropdownParent = 'body'),
+                     choices = names(sfRaws[[id]]))
       })
     return()
   }
