@@ -194,6 +194,8 @@ uifunc <- function() {
         ui_nm("extentMatrix_group", "Ecosystem Type Change Matrix"),
         ui_nm("extentPair_group", "Change in land cover by group pair", include = FALSE),
         hr(),
+        tags$script(src = "colourextentdiag.js"),
+        checkboxInput("col_diag", "Colour diagonals of Ecosystem Type Change Matrix", value = FALSE),
         includeHTML("www/notes.html")
       )
       )},
@@ -763,6 +765,15 @@ server <- function(input, output, session) {
     }, sanitize.text.function = function(x) x)
     return()
   }
+  
+  observeEvent(input$col_diag, {
+      for(id in mapIds()[-1]){
+        if(input$col_diag)
+          shinyjs::runjs(sprintf("colourExtentDiag('%s', '%s')", paste("extentMatrix", id, sep = "_"), "rgba(255, 255, 145, 0.5)"))
+        else
+          shinyjs::runjs(sprintf("colourExtentDiag('%s', '%s')", paste("extentMatrix", id, sep = "_"), ""))
+      }
+  })
 }
 
 shinyApp(uifunc(), server)
