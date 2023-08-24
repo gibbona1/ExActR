@@ -99,11 +99,18 @@ ui_nm <- function(id, name, include = TRUE) div(h3(name),
 sfdiv  <- function(...) div(..., class = "sfdiv-container")
 sfdivi <- function(...) div(..., class = "sfdiv-item")
 
-sfInput <- function(id, name, lab, width = NULL){
+get_sf_path <- function(id, inp){
+  x <- inp[[sfid(id)]]$name
+  if(is.null(x))
+    return(" ")
+  return(strsplit(x, "\\.")[[1]][1])
+}
+
+sfInput <- function(id, name, lab, width = NULL, inp = input){
   sfdivi(
     fileInput(name, lab, accept = map_accepts, multiple = TRUE, width = width),
     tags$style("white-space: pre-wrap;"),
-    verbatimTextOutput(paste(name, "name", sep = "_")),
+    textInput(paste(name, "name", sep = "_"), NULL, value = get_sf_path(id, inp)),
     leafletOutput(paste0("plot", id)),
     uiOutput(paste0("map", id, "col")),
     checkboxInput(sprintf("map%s_include", id), "Show Map", value = TRUE)
@@ -286,10 +293,10 @@ server <- function(input, output, session) {
   lazy_unlist <- function(x) suppressWarnings(unlist(x))
   
   get_sf_name <- function(id, inp = input){
-    x <- inp[[sfid(id)]]$name
+    x <- inp[[paste(sfid(id), "name", sep = "_")]]
     if(is.null(x))
       return(" ")
-    return(strsplit(x, "\\.")[[1]][1])
+    return(x)
   }
   
   #selectInput for what column of sf data to colour in the map and for accounts
@@ -299,12 +306,6 @@ server <- function(input, output, session) {
                      options = list(dropdownParent = 'body'),
                      choices = names(sfRaws[[id]]))
       })
-    return()
-  }
-  
-  renderSfName <- function(id){
-    sf_name <- get_sf_name(id)
-    output[[sfid(id, "_name")]] <- renderText({sf_name})
     return()
   }
   
@@ -349,7 +350,7 @@ server <- function(input, output, session) {
     
     do.call(sfdiv, 
             purrr::map(mapIds(),
-              ~ sfInput(.x, sfid(.x), mapTitle(.x), width = width)
+              ~ sfInput(.x, sfid(.x), mapTitle(.x), width = width, inp = input)
               )
             )
   })
@@ -394,7 +395,6 @@ server <- function(input, output, session) {
   
   observe({
     for(id in mapIds()){
-      renderSfName(id)
       renderLeafletPlot(id)
       renderMapPlot(id)
       renderExpTable(paste0(id))
