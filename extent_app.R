@@ -51,6 +51,8 @@ bold_lastrow <- function(el, include = TRUE) {
 
 sfid <- function(id, ...) paste0("sf", id, ...)
 
+get_msc <- function(id) sprintf("map%s_sel_col", id)
+
 copy_button <- function(id, format, formatLab){
   return(actionButton(paste("copy", id, format, sep = "_"), 
                       paste("Copy as", formatLab), 
@@ -81,7 +83,12 @@ repl_sp_da <- function(text) {
   return(text)
 }
 
-my_spinner <- function(el) withSpinner(el, type = 1, color = "#228B22", color.background = "#FFFFFF")
+colpicker_id <- function(x){
+  return(paste("colpicker", repl_sp_da(x), sep = "_"))
+}
+
+my_spinner <- function(el) withSpinner(el, type = 1, color = "#228B22", 
+                                       color.background = "#FFFFFF")
 
 ui_nm <- function(id, name, include = TRUE) div(h3(name), 
                                 checkboxInput(paste0("include_", id),
@@ -92,29 +99,24 @@ ui_nm <- function(id, name, include = TRUE) div(h3(name),
 sfdiv  <- function(...) div(..., class = "sfdiv-container")
 sfdivi <- function(...) div(..., class = "sfdiv-item")
 
-#this keeps the overflow same as sfInput for good spacing
-input_group_div <- function() div(class = "shiny-input-container")
-
-sfInput <- function(id, in_name, in_lab, out_name, width = NULL){
+sfInput <- function(id, name, lab, width = NULL){
   sfdivi(
-    fileInput(in_name, in_lab, accept = map_accepts, multiple = TRUE, width = width),
+    fileInput(name, lab, accept = map_accepts, multiple = TRUE, width = width),
     tags$style("white-space: pre-wrap;"),
-    verbatimTextOutput(paste(in_name, "name", sep = "_")),
-    input_group_div(),
-    h3(paste(out_name, "Map", paste0("(", id, ")"))),
+    verbatimTextOutput(paste(name, "name", sep = "_")),
     leafletOutput(paste0("plot", id)),
     uiOutput(paste0("map", id, "col")),
-    checkboxInput(paste0("map", id, "_include"), "Include Leaflet Plot", value = TRUE)
+    checkboxInput(sprintf("map%s_include", id), "Show Map", value = TRUE)
     )
 }
 
-extentObj <- function(id, time, b_rnms = TRUE, b_lrow = FALSE){
+extentObj <- function(id, time, b_rnms = TRUE, b_lrow = FALSE) {
+  id_time <- paste(id, time, sep = "_")
   wellPanel(
-    input_group_div(),
-    bold_rownames(paste(id, time, sep = "_"), include = b_rnms),
-    bold_lastrow(paste(id, time, sep = "_"), include = b_lrow),
-    tableOutput(paste(id, time, sep = "_")) %>% my_spinner(),
-    uiOutput(paste("copybttn", id, time, sep = "_")),
+    bold_rownames(id_time, include = b_rnms),
+    bold_lastrow(id_time, include = b_lrow),
+    tableOutput(id_time) %>% my_spinner(),
+    uiOutput(paste("copybttn", id_time, sep = "_")),
     class = "sfdiv-item"
   )
 }
@@ -127,7 +129,8 @@ ul    <- tags$ul
 
 uifunc <- function() {
   dashboardPage(
-    header  = dashboardHeader(title = "Extent Account Creator", titleWidth = "300px"),
+    header  = dashboardHeader(title      = "Extent Account Creator", 
+                              titleWidth = "300px"),
     sidebar = dashboardSidebar(disable = TRUE),
     body    = dashboardBody(
     useShinyjs(),
@@ -184,7 +187,7 @@ uifunc <- function() {
       ),
       fluidRow(
         column(12,
-        actionButton("gen_extent", "Generate/Refresh Extent", class = "btn-primary"),        
+        actionButton("gen_extent", "Generate Extent", class = "btn-primary"),        
         align = "center")
       ),
       fluidRow(
@@ -192,10 +195,10 @@ uifunc <- function() {
         ui_nm("extentTable_group", "Extent table (Ha)"),
         ui_nm("extentPercentTable_group", "Extent table (% of opening)"),
         ui_nm("extentMatrix_group", "Ecosystem Type Change Matrix"),
-        ui_nm("extentPair_group", "Change in land cover by group pair", include = FALSE),
+        ui_nm("extentPair_group", "Change by group pair", include = FALSE),
         hr(),
         tags$script(src = "colourextentdiag.js"),
-        checkboxInput("col_diag", "Colour diagonals of Ecosystem Type Change Matrix", value = FALSE),
+        checkboxInput("col_diag", "Colour diagonals of Matrix", value = FALSE),
         includeHTML("www/notes.html")
       )
       )},
@@ -292,7 +295,7 @@ server <- function(input, output, session) {
   #selectInput for what column of sf data to colour in the map and for accounts
   renderMapSel <- function(id){
     output[[paste0("map", id, "col")]] <- renderUI({
-      selectizeInput(sprintf("map%s_sel_col", id), "Select Grouping Column", 
+      selectizeInput(get_msc(id), "Select Grouping Column", 
                      options = list(dropdownParent = 'body'),
                      choices = names(sfRaws[[id]]))
       })
@@ -346,13 +349,12 @@ server <- function(input, output, session) {
     
     do.call(sfdiv, 
             purrr::map(mapIds(),
-              ~ sfInput(.x, sfid(.x), mapTitle(.x), map_oc(.x), 
-                        width = width)
+              ~ sfInput(.x, sfid(.x), mapTitle(.x), width = width)
               )
             )
   })
   
-  renderExtentObj <- function(tabname, b_rnms = TRUE, b_lrow = FALSE){
+  makeExtent <- function(tabname, brow = TRUE, bcol = FALSE){
     req(input$gen_extent)
     if(any(sapply(mapIds(), sf_null)))
       return(NULL)
@@ -361,18 +363,19 @@ server <- function(input, output, session) {
     do.call(sfdiv, 
             purrr::map(as.character(mapIds()[-1]),
                        ~ sfdivi(h5(tabtitle(.x, tabname)),
-                             extentObj(tabname, .x, b_rnms, b_lrow))
+                             extentObj(tabname, .x, brow, bcol))
             )
     )
   }
   
-  output$extentTable_group <- renderUI({renderExtentObj("extentTable")})
+  output$extentTable_group <- renderUI({makeExtent("extentTable")})
   
-  output$extentPercentTable_group <- renderUI({renderExtentObj("extentPercentTable")})
+  output$extentPercentTable_group <- renderUI({makeExtent("extentPercentTable")})
     
-  output$extentMatrix_group <- renderUI({renderExtentObj("extentMatrix")})
+  output$extentMatrix_group <- renderUI({makeExtent("extentMatrix")})
   
-  output$extentPair_group <- renderUI({renderExtentObj("extentPair", b_rnms = FALSE, b_lrow = TRUE)})
+  output$extentPair_group <- renderUI({makeExtent("extentPair", 
+                                                  brow = FALSE, bcol = TRUE)})
 
   # Read shapefiles and render other objects
   observe({
@@ -409,7 +412,7 @@ server <- function(input, output, session) {
 
   #if the sf data or selectInput are not ready, wait
   plot_wait <- function(id) 
-    return(is.null(input[[sfid(id)]]) | is.null(input[[paste0("map", id, "_sel_col")]]))
+    return(is.null(input[[sfid(id)]]) | is.null(input[[get_msc(id)]]))
   
   code_lookup <- function(vec){
     if(input$use_codes){
@@ -426,11 +429,11 @@ server <- function(input, output, session) {
   codeGroups <- reactive({
     cols <- c()
     for(i in mapIds()){
-      m_col <- input[[paste0("map", i, "_sel_col")]]
+      m_col <- input[[get_msc(i)]]
       if(!plot_wait(i))
         cols  <- union(cols, sfs[[paste0(i)]][[m_col]])
     }
-    return(sort(cols))
+    return(sort(cols %>% as.character()))
   })
   
   codeGroupsLookup <- reactive({code_lookup(codeGroups())})
@@ -447,7 +450,7 @@ server <- function(input, output, session) {
     
     do.call(div, 
             purrr::map(code_grp, 
-                       ~ colourInput(paste("colpicker", repl_sp_da(.x), sep = "_"),
+                       ~ colourInput(colpicker_id(.x),
                                      label = .x,
                                      value = vir_palette(.x)
                                      )
@@ -458,7 +461,7 @@ server <- function(input, output, session) {
   #common colour palette between the two maps for easier visualisation of groups
   plotCols <- reactive({
     code_grp <- codeGroupsLookup()
-    col_vec <- sapply(code_grp, function(x) input[[paste0("colpicker_", repl_sp_da(x))]])
+    col_vec  <- sapply(code_grp, function(x) input[[colpicker_id(x)]])
     
     if(any(sapply(col_vec, is.null)) | any(col_vec == ""))
       palette <- "viridis"
@@ -473,13 +476,13 @@ server <- function(input, output, session) {
       if(plot_wait(id) | !input[[paste0("map", id, "_include")]])
       return(leaflet() %>% setView(lng = 10*id, lat = 0, zoom = 2))
       else
-        return(gen_map_leaflet(sfs[[paste0(id)]], input[[paste0("map", id, "_sel_col")]]))
+        return(gen_map_leaflet(sfs[[paste0(id)]], input[[get_msc(id)]]))
     })
     return()
   }
 
   extentData <- reactive({
-    do.call(req, lapply(mapIds(), function(i) input[[paste0("map", i, "_sel_col")]]))
+    do.call(req, lapply(mapIds(), function(i) input[[get_msc(i)]]))
     
     #get opening, closing, changes for each code  from extent change matrix
     res_list <- lapply(as.character(mapIds()[-1]), function(i) {
@@ -495,7 +498,7 @@ server <- function(input, output, session) {
     if(id == "1")
       return(y)
     else
-      return(n)
+      return(as.numeric(n))
   }
   
   changeData <- reactive({
@@ -504,9 +507,9 @@ server <- function(input, output, session) {
       extent_df <- extentData()[[chk1(id, "2", id)]]
       row_df <- data.frame(time   = id,
                            id     = colnames(extent_df),
-                           open   = chk1(id, NA, as.numeric(extent_df["opening", ])),
+                           open   = chk1(id, NA, extent_df["opening", ]),
                            close  = as.numeric(extent_df["closing", ]),
-                           change = chk1(id, NA, as.numeric(extent_df["net change", ])))
+                           change = chk1(id, NA, extent_df["net change", ]))
       change_df <- rbind(change_df, row_df)
     }
     return(change_df)
@@ -549,8 +552,8 @@ server <- function(input, output, session) {
   
       code_grps <- codeGroups()
       
-      grp_col1 <- input[[sprintf("map%s_sel_col", id-1)]]
-      grp_col2 <- input[[sprintf("map%s_sel_col", id)]]
+      grp_col1 <- input[[get_msc(id - 1)]]
+      grp_col2 <- input[[get_msc(id)]]
       
       #I think it's faster to intersect everything up front and then lookup
       df_int <- st_intersection(df1, df2)
@@ -559,7 +562,8 @@ server <- function(input, output, session) {
               lapply(code_grps, function(grp1) {
                 res <- sapply(code_grps, function(grp2) {
                   df_int %>%
-                    filter((df_int[[grp_col1]] == grp1) & (df_int[[grp_col2]] == grp2)) %>%
+                    filter((df_int[[grp_col1]] == grp1) &
+                           (df_int[[grp_col2]] == grp2)) %>%
                     st_make_valid() %>% clean_sum() %>% lazy_unlist()
                 })
                 return(res)
@@ -610,7 +614,8 @@ server <- function(input, output, session) {
                change = res,
                perc   = change/sum(change)) %>%
         mutate(across(c('change', 'perc'), \(x) round(x, digits = 2)))
-      total_df <- data.frame(from = "Total change", to = "", change = sum(pair_df$change), perc = 1.00)
+      total_df <- data.frame(from = "Total change", to = "", 
+                             change = sum(pair_df$change), perc = 1.00)
       pair_df <- rbind(pair_df, total_df)
       colnames(pair_df) <- c("Change from", "Change to", "Area (Ha)", "% change")
       
@@ -710,7 +715,7 @@ server <- function(input, output, session) {
     m_id <- paste0("plotMap", id)
     output[[m_id]] <- renderPlot({
       p <- plots[[m_id]] <- plot_extent(sfs[[paste0(id)]], 
-                                        input[[paste0("map", id, "_sel_col")]], 
+                                        input[[get_msc(id)]], 
                                         get_sf_name(id))
       print(p)
     })
@@ -740,8 +745,9 @@ server <- function(input, output, session) {
     
     do.call(div, 
             purrr::map(mapIds(),
-                       ~ div(h3(paste0(map_oc(.x, mapIds()), " Data (", .x, ") - ", 
-                                       get_sf_name(.x))),
+                       ~ div(h3(sprintf("%s Data (%s) - %s", 
+                                        map_oc(.x, mapIds()), .x, 
+                                        get_sf_name(.x))),
                              tableOutput(paste0("expTable", .x))))
             )
   })
@@ -768,10 +774,11 @@ server <- function(input, output, session) {
   
   observeEvent(input$col_diag, {
       for(id in mapIds()[-1]){
+        diag_col <- ""
+        ext_id   <- paste("extentMatrix", id, sep = "_")
         if(input$col_diag)
-          shinyjs::runjs(sprintf("colourExtentDiag('%s', '%s')", paste("extentMatrix", id, sep = "_"), "rgba(255, 255, 145, 0.5)"))
-        else
-          shinyjs::runjs(sprintf("colourExtentDiag('%s', '%s')", paste("extentMatrix", id, sep = "_"), ""))
+          diag_col <- "rgba(255, 255, 145, 0.5)"
+        runjs(sprintf("colourExtentDiag('%s', '%s')", ext_id, diag_col))
       }
   })
 }
