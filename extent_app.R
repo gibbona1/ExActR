@@ -494,17 +494,19 @@ server <- function(input, output, session) {
     return(res_list)
   })
   
-  chk1 <- function(id, y, n) {
+  chk1 <- function(id, y, n, make_numeric = TRUE) {
     if(id == "1")
       return(y)
+    else if(make_numeric)
+        return(as.numeric(n))
     else
-      return(as.numeric(n))
+      return(n)
   }
   
   changeData <- reactive({
     change_df <- data.frame()
     for(id in as.character(mapIds())){
-      extent_df <- extentData()[[chk1(id, "2", id)]]
+      extent_df <- extentData()[[chk1(id, "2", id, make_numeric = FALSE)]]
       row_df <- data.frame(time   = id,
                            id     = colnames(extent_df),
                            open   = chk1(id, NA, extent_df["opening", ]),
