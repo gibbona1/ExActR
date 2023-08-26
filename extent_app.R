@@ -5,6 +5,7 @@ library(shinydashboard)
 library(colourpicker)
 library(shinycssloaders)
 library(leaflet)
+library(leaflet.extras)
 library(sf)
 library(dplyr)
 library(ggplot2)
@@ -481,7 +482,10 @@ server <- function(input, output, session) {
   renderLeafletPlot <- function(id){
     output[[paste0("plot", id)]] <- renderLeaflet({
       if(plot_wait(id) | !input[[paste0("map", id, "_include")]])
-      return(leaflet() %>% setView(lng = 10*id, lat = 0, zoom = 2))
+      return(leaflet(options = leafletOptions(zoomControl = FALSE)) %>% 
+               setView(lng = 10*id, lat = 0, zoom = 2) %>%
+               suspendScroll(wakeTime = 2000, hoverToWake = FALSE, sleepNote = FALSE)
+      )
       else
         return(gen_map_leaflet(sfs[[paste0(id)]], input[[get_msc(id)]]))
     })
