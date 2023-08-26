@@ -14,9 +14,6 @@ library(ggplot2)
 map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
 #TODO: 
 ## position of CRS select, add delete butons, lookup elements, other options
-## possible other small options
-## - sf use s2
-## - change verbatim output of time period "name" and all subsequeny mentions
 ## instruction tab
 ## maps should have toggle ability for codes - mapview?
 ## check if projection or sf_use_s2(FALSE) impacts areas
@@ -161,10 +158,15 @@ uifunc <- function() {
         uiOutput("sf_group"),
       ),
       fluidRow(
-        column(6,
+        column(5,
           selectizeInput("sel_crs", "Select CRS", choices = NULL, width = "100%"),
         ),
-        column(6,
+        column(2, 
+               div(style = 'display: inline-block; vertical-align: -25px;',
+                checkboxInput("use_s2", "Use s2 package", value = TRUE)
+               )
+               ),
+        column(5,
           actionButton("addTimePoint", 
                        label = "Add Time Point", 
                        icon  = icon("plus-circle"), 
@@ -545,6 +547,8 @@ server <- function(input, output, session) {
   extentMat <- reactive({
     if(any(sapply(mapIds(), plot_wait)))
       return(NULL)
+    
+    sf_use_s2(input$use_s2)
     
     res_l <- list()
     
