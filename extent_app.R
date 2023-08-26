@@ -163,7 +163,8 @@ uifunc <- function() {
         ),
         column(2, 
                div(style = 'display: inline-block; vertical-align: -25px;',
-                checkboxInput("use_s2", "Use s2 package", value = TRUE)
+                checkboxInput("use_s2", "Use s2 package", value = TRUE),
+                checkboxInput("show_legend", "Show legend", value = TRUE)
                )
                ),
         column(5,
@@ -277,18 +278,22 @@ server <- function(input, output, session) {
 
   #maps are very similar so use a function the data and which column to colour by
   gen_map_leaflet <- function(data, column) {
-    leaflet(options = leafletOptions(crs = leafletCRS(code = input$sel_crs))) %>%
+    p <- leaflet(options = leafletOptions(crs = leafletCRS(code = input$sel_crs))) %>%
       addTiles() %>%
       addPolygons(data         = data %>% st_transform(default_crs),
                   fillColor    = plotCols()(code_lookup(data[[column]])),
                   fillOpacity  = 0.7,
                   color        = "#b2aeae", #boundary colour, use hex color codes.
                   weight       = 0.5,
-                  smoothFactor = 0.2) %>%
-      addLegend(pal      = plotCols(),
+                  smoothFactor = 0.2)
+    if(input$show_legend){
+      p <- p %>% 
+        addLegend(pal      = plotCols(),
                 values   = code_lookup(data[[column]]),
                 position = "bottomleft",
                 title    = "Code <br>")
+    }
+    return(p)
   }
 
   #extract from a list and suppress  warnings e.g. NAs, geometry issue, for now
