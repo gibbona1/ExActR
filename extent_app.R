@@ -216,7 +216,19 @@ uifunc <- function() {
       {tabPanel("Composition Plots",
                 uiOutput("extentPlots"))},
       {tabPanel("Habitat Explorer",
-                uiOutput("habitatExplorer"))}
+                uiOutput("habitatExplorer"))},
+      {tabPanel("Instructions", 
+                fluidRow(
+                  column(12,
+                         h5("1. Decide on the number of time points you want to use (use the add/delete buttons to adjust this)."),
+                         h5("2. Upload the 2 (or more) maps (upload cpg, shp, dbf, prj files together for each time point)."),
+                         h5("3. Select the grouping column (e.g. CLC_CODE_2022)."),
+                         h5("4. Toggle secondary options if desired (CRS, s2 package, code lookup)."),
+                         h5("5. When ready, click Generate extent."),
+                         h5("6. Wait for extent table results. Composition plots in the next tab.")
+                  )
+                )
+                )}
     )
     ),
     skin = "green"
