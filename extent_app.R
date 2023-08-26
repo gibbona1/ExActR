@@ -13,18 +13,29 @@ library(ggplot2)
 #need to upload at least .shp, .shx, .dbf, .prj files for each
 #so the map knows where to put itself
 map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
-#TODO: 
-## position of CRS select, add delete butons, lookup elements, other options
-## instruction tab
-## maps should have toggle ability for codes - mapview?
-## check if projection or sf_use_s2(FALSE) impacts areas
-## (common) legend outside of map and fully visible
-## dashboard sidebar, header with info etc
-## - what info do we include (will GitHub be public?)
-## nicer UI e.g. https://github.com/Appsilon/shiny.semantic
-## choose colour palette, theme (bootstrap) button status etc
-## unit tests
-## informative errors
+#TODO:
+## UI
+### position of CRS select, add delete buttons, lookup elements, other options
+### (common) legend outside of map and fully visible
+### dashboard sidebar, header with info etc
+### - what info do we include (will GitHub be public?)
+### nicer UI e.g. https://github.com/Appsilon/shiny.semantic
+### choose colour palette, theme (bootstrap) button status etc
+
+## Server/computation
+### maps should have hover to display codes, areas of polygons etc - mapview?
+### check if projection or sf_use_s2(FALSE) impacts areas
+### informative errors - https://shiny.posit.co/r/articles/improve/validation/
+
+## Robustness and testing
+### unit tests
+### - open close
+### - tables generate nonnegative values
+### - generate tables (copy/download)
+### - generate plots (copy/download)
+### check on different browsers
+### https://rstudio.github.io/shinytest2/articles/robust.html
+
 
 crs_data <- rgdal::make_EPSG()
 crs_list <- crs_data$code
@@ -223,7 +234,7 @@ uifunc <- function() {
                     tags$li("Decide on the number of time points you want to use",
                             "(use the", tags$b("add/delete time point"), "buttons to adjust this)."),
                     tags$li("Upload the 2 or more map files", "(upload", 
-                      tags$code(".cpg"), tags$code(".shp"), tags$code(".dbf"), tags$code(".prj"), "files together for each time point)."),
+                      lapply(c(".cpg", ".shp", ".dbf", ".prj"), tags$code), "files together for each time point)."),
                     tags$li("Select the grouping column (e.g.", tags$em("CLC_CODE_2022"), "for each time point."),
                     tags$li("Toggle secondary options if desired", 
                             "(CRS, s2 package, code lookup)."),
