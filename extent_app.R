@@ -219,13 +219,17 @@ uifunc <- function() {
                 uiOutput("habitatExplorer"))},
       {tabPanel("Instructions", 
                 fluidRow(
-                  column(12,
-                         h5("1. Decide on the number of time points you want to use (use the add/delete buttons to adjust this)."),
-                         h5("2. Upload the 2 (or more) maps (upload cpg, shp, dbf, prj files together for each time point)."),
-                         h5("3. Select the grouping column (e.g. CLC_CODE_2022)."),
-                         h5("4. Toggle secondary options if desired (CRS, s2 package, code lookup)."),
-                         h5("5. When ready, click Generate extent."),
-                         h5("6. Wait for extent table results. Composition plots in the next tab.")
+                  tags$ol(
+                    tags$li("Decide on the number of time points you want to use",
+                            "(use the", tags$b("add/delete time point"), "buttons to adjust this)."),
+                    tags$li("Upload the 2 or more map files", "(upload", 
+                      tags$code(".cpg"), tags$code(".shp"), tags$code(".dbf"), tags$code(".prj"), "files together for each time point)."),
+                    tags$li("Select the grouping column (e.g.", tags$em("CLC_CODE_2022"), "for each time point."),
+                    tags$li("Toggle secondary options if desired", 
+                            "(CRS, s2 package, code lookup)."),
+                    tags$li("When ready, click", tags$b("Generate Extent.")),
+                    tags$li("Wait for extent table results.",
+                            "result plots are in the", tags$b("Composition plots"), "tab.")
                   )
                 )
                 )}
