@@ -292,7 +292,7 @@ server <- function(input, output, session) {
   }
   
   #replace NAs and Infs with 0
-  clean_zero <- function(x) replace(x, is.na(x) | is.infinite(x), 0)
+  clean_zero <- function(x) replace(x, is.na(x) | is.infinite(x) | abs(x) < 1e-3, 0)
   
   clean_sum <- function(x) x %>% st_area() %>% blank_zero() %>% sum()
 
@@ -566,6 +566,7 @@ server <- function(input, output, session) {
     output[[paste("extentTable", id, sep = "_")]] <- renderTable({
       extent_df       <- extentData()[[id]]
       extent_df$Total <- rowSums(extent_df)
+      extent_df <- apply(extent_df, 2, clean_zero)
       return(extent_df)
     }, rownames = TRUE)
     return()
