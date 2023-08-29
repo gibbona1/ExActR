@@ -515,12 +515,11 @@ server <- function(input, output, session) {
   renderLeafletPlot <- function(id){
     output[[paste0("plot", id)]] <- renderLeaflet({
       if(plot_wait(id) | !input[[paste0("map", id, "_include")]])
-      return(leaflet(options = leafletOptions(zoomControl = FALSE)) %>% 
-               setView(lng = 10*id, lat = 0, zoom = 2) %>%
-               suspendScroll(wakeTime = 2000, hoverToWake = FALSE, sleepNote = FALSE)
-      )
+        p <- leaflet(options = leafletOptions(zoomControl = FALSE)) %>% 
+          setView(lng = 10*id, lat = 0, zoom = 2)
       else
-        return(gen_map_leaflet(sfs[[paste0(id)]], input[[get_msc(id)]]))
+        p <- gen_map_leaflet(sfs[[paste0(id)]], input[[get_msc(id)]])
+      return(p %>% suspendScroll(wakeTime = 2000, sleepNote = FALSE))
     })
     return()
   }
