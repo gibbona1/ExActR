@@ -36,6 +36,22 @@ map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
 ### check on different browsers
 ### https://rstudio.github.io/shinytest2/articles/robust.html
 
+logo_info <- list(
+  "nature-energy" = list(
+    "href" = "https://www.marei.ie/project/natureenergy/",
+    "src"  = "https://www.marei.ie/wp-content/uploads/2021/06/Nature-Energy-Project-profile.jpg"),
+  "for-es" = list(
+    "href" = "https://www.for-es.ie/",
+    "src"  = "https://static.wixstatic.com/media/94066f_291a8945f27e4b6e9f455baa3a6d0428~mv2.png/v1/fill/w_140,h_39,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/FOR-ES_Logo-Colour.png")
+  )
+
+
+get_logo <- function(id)
+  tags$li(class = "dropdown",
+          tags$a(href=logo_info[[id]][["href"]],
+                 tags$img(src=logo_info[[id]][["src"]], height='25')),
+          style = "margin-top: -5px; margin-bottom: -5px; line-height: 50px; padding: 0; background: #86e36d;")
+
 
 crs_data <- rgdal::make_EPSG()
 crs_list <- crs_data$code
@@ -146,7 +162,10 @@ ul    <- tags$ul
 uifunc <- function() {
   dashboardPage(
     header  = dashboardHeader(title      = "Extent Account Creator", 
-                              titleWidth = "300px"),
+                              titleWidth = "300px",
+                              get_logo("nature-energy"),
+                              get_logo("for-es")
+                              ),
     sidebar = dashboardSidebar(disable = TRUE),
     body    = dashboardBody(
     useShinyjs(),
