@@ -15,12 +15,10 @@ library(ggplot2)
 map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
 #TODO:
 ## UI
-### position of CRS select, add delete buttons, lookup elements, other options
 ### (common) legend outside of map and fully visible
-### dashboard sidebar, header with info etc
 ### - what info do we include (will GitHub be public?)
 ### nicer UI e.g. https://github.com/Appsilon/shiny.semantic
-### choose colour palette, theme (bootstrap) button status etc
+### choose colour palette, theme (bootstrap) etc
 
 ## Server/computation
 ### maps should have hover to display codes, areas of polygons etc - mapview?
@@ -166,7 +164,27 @@ uifunc <- function() {
                               get_logo("nature-energy"),
                               get_logo("for-es")
                               ),
-    sidebar = dashboardSidebar(disable = TRUE),
+    sidebar = dashboardSidebar(
+      tags$head(tags$style(HTML(".sidebar-menu > li {white-space: normal;}"))),
+      width = "300px",
+      collapsed = TRUE,
+      selectizeInput("sel_crs", "Select CRS", choices = NULL, width = "100%"),
+      checkboxInput("use_s2", "Use s2 package", value = TRUE),
+      checkboxInput("show_legend", "Show leaflet legends", value = TRUE),
+      actionButton("addTimePoint", 
+                   label = "Add Time Point", 
+                   icon  = icon("plus-circle"), 
+                   style = 'margin-top:25px; color: white;',
+                   class = "btn-success"),
+      actionButton("delTimePoint", 
+                   label = "Delete Time Point", 
+                   icon  = icon("minus-circle"), 
+                   style = 'margin-top:25px; color: white;',
+                   class = "btn-danger"),
+      fileInput("lookupFile", "Upload Lookup table", accept = ".csv"),
+      verbatimTextOutput("lookup_file"),
+      checkboxInput("use_codes", "Use code lookup", value = FALSE)
+    ),
     body    = dashboardBody(
     useShinyjs(),
     tags$head(
@@ -188,37 +206,6 @@ uifunc <- function() {
       fluidRow(
         uiOutput("sf_group"),
       ),
-      fluidRow(
-        column(5,
-          selectizeInput("sel_crs", "Select CRS", choices = NULL, width = "100%"),
-        ),
-        column(2, 
-               div(style = 'display: inline-block; vertical-align: -25px;',
-                checkboxInput("use_s2", "Use s2 package", value = TRUE),
-                checkboxInput("show_legend", "Show legend", value = TRUE)
-               )
-               ),
-        column(5,
-          actionButton("addTimePoint", 
-                       label = "Add Time Point", 
-                       icon  = icon("plus-circle"), 
-                       style = 'margin-top:25px; color: white;',
-                       class = "btn-success"),
-          actionButton("delTimePoint", 
-                       label = "Delete Time Point", 
-                       icon  = icon("minus-circle"), 
-                       style = 'margin-top:25px; color: white;',
-                       class = "btn-danger"),
-          align = "right"
-        ),
-      ),
-      fluidRow(
-        table(style = "width: 100%",
-         tr(ctd(fileInput("lookupFile", "Upload Lookup table", accept = ".csv")),
-            ctd(verbatimTextOutput("lookup_file")),
-            ctd(align = "right", 
-                checkboxInput("use_codes", "Use code lookup", value = FALSE))),
-         )),
       fluidRow(
        bsCollapse(
          bsCollapsePanel("Colour mapping",
