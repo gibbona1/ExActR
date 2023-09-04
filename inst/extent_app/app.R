@@ -27,12 +27,6 @@ map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj", ".zip")
 ### JSON upload colours
 
 ## Robustness and testing
-### unit tests
-### - open close
-### - tables generate nonnegative values
-### - generate tables (copy functionality)
-### - generate plots (copy/download functionality)
-### check on different browsers
 ### https://rstudio.github.io/shinytest2/articles/robust.html
 
 logo_info <- list(
