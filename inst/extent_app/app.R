@@ -16,7 +16,6 @@ map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj", ".zip")
 #TODO:
 ## UI
 ### (common) legend outside of map and fully visible
-### - what info do we include (will GitHub be public?)
 ### nicer UI e.g. https://github.com/Appsilon/shiny.semantic
 ### choose colour palette, theme (bootstrap) etc
 
@@ -24,7 +23,7 @@ map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj", ".zip")
 ### maps should have hover to display codes, areas of polygons etc - mapview?
 ### check if projection or sf_use_s2(FALSE) impacts areas
 ### informative errors - https://shiny.posit.co/r/articles/improve/validation/
-### JSON upload colours
+### JSON upload/download colour map
 
 ## Robustness and testing
 ### https://rstudio.github.io/shinytest2/articles/robust.html
@@ -125,7 +124,7 @@ get_sf_path <- function(id, inp){
 }
 
 sfInput <- function(id, name, lab, width = NULL, inp = input){
-  sfdivi(
+  sfdivi(id = paste(name, "grp", sep = "_"),
     fileInput(name, lab, accept = map_accepts, multiple = TRUE, width = width),
     tags$style("white-space: pre-wrap;"),
     textInput(paste(name, "name", sep = "_"), NULL, value = get_sf_path(id, inp)),
