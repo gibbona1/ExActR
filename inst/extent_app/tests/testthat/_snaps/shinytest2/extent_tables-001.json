@@ -81,6 +81,7 @@
     "sidebarCollapsed": true,
     "sidebarItemExpanded": null,
     "use_codes": false,
+    "use_date": false,
     "use_s2": true,
     "window_width": 979
   },

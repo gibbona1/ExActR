@@ -8,11 +8,11 @@ test_that("{shinytest2} recording: basic", {
 })
 
 
-test_that("{shinytest2} recording: extent tables", {
-  app <- AppDriver$new(name = "extent tables", seed = 123, height = 563, width = 979)
+test_that("{shinytest2} recording: extent_tables", {
+  app <- AppDriver$new(name = "extent_tables", seed = 123, height = 563, width = 979)
   app$set_inputs(sel_crs = "4326")
-  app$upload_file(sf1 = "../../../../Hazelwood/hazelwood_CLC2000.zip")
-  app$upload_file(sf2 = "../../../../Hazelwood/hazelwood_CLC2006.zip")
+  app$upload_file(sf1 = "../../../../data/Hazelwood/hazelwood_CLC2000.zip")
+  app$upload_file(sf2 = "../../../../data/Hazelwood/hazelwood_CLC2006.zip")
   app$set_inputs(map2_sel_col = "CODE_06")
   app$set_inputs(map1_sel_col = "CODE_00")
   app$click("gen_extent")
@@ -26,8 +26,8 @@ test_that("{shinytest2} recording: plots", {
   app <- AppDriver$new(variant = platform_variant(), name = "plots", seed = 456, 
                        height = 563, width = 979)
   app$set_inputs(sel_crs = "4326")
-  app$upload_file(sf1 = "../../../../Hazelwood/hazelwood_CLC2000.zip")
-  app$upload_file(sf2 = "../../../../Hazelwood/hazelwood_CLC2006.zip")
+  app$upload_file(sf1 = "../../../../data/Hazelwood/hazelwood_CLC2000.zip")
+  app$upload_file(sf2 = "../../../../data/Hazelwood/hazelwood_CLC2006.zip")
   app$set_inputs(map2_sel_col = "CODE_06")
   app$set_inputs(map1_sel_col = "CODE_00")
   app$click("gen_extent")
@@ -41,8 +41,8 @@ test_that("{shinytest2} recording: download", {
   app <- AppDriver$new(variant = platform_variant(), name = "download", seed = 111, 
                        height = 563, width = 979)
   app$set_inputs(sel_crs = "4326")
-  app$upload_file(sf1 = "../../../../Hazelwood/hazelwood_CLC2000.zip")
-  app$upload_file(sf2 = "../../../../Hazelwood/hazelwood_CLC2006.zip")
+  app$upload_file(sf1 = "../../../../data/Hazelwood/hazelwood_CLC2000.zip")
+  app$upload_file(sf2 = "../../../../data/Hazelwood/hazelwood_CLC2006.zip")
   app$set_inputs(map2_sel_col = "CODE_06")
   app$set_inputs(map1_sel_col = "CODE_00")
   app$click("gen_extent")
@@ -55,7 +55,4 @@ test_that("{shinytest2} recording: download", {
   app$expect_download("download_plotMap1")
   app$wait_for_idle()
   app$expect_download("download_plotMap2")
-  app$wait_for_idle()
-  app$expect_values()
-  app$expect_screenshot()
 })

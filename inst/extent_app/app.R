@@ -182,7 +182,8 @@ uifunc <- function() {
                    class = "btn-danger"),
       fileInput("lookupFile", "Upload Lookup table", accept = ".csv"),
       verbatimTextOutput("lookup_file"),
-      checkboxInput("use_codes", "Use code lookup", value = FALSE)
+      checkboxInput("use_codes", "Use code lookup", value = FALSE),
+      checkboxInput("use_date", "Use date in plot download filenames", value = FALSE)
     ),
     body    = dashboardBody(
     useShinyjs(),
@@ -774,9 +775,9 @@ server <- function(input, output, session) {
     return()
   }
   
-  render_download_bttn <- function(id, resize = TRUE){
+  render_download_bttn <- function(id, resize = TRUE, use_date = FALSE){
     downloadHandler(
-      filename = function() paste0(id, '-', Sys.Date(), '.png'),
+      filename = function() paste0(id, ifelse(use_date, paste0('-', Sys.Date()), ""), '.png'),
       content  = function(con) {
         if(resize){
           # get image code from URI
@@ -792,8 +793,8 @@ server <- function(input, output, session) {
   }
   
   downloadPlotOutput <- function(plt){
-    output[[paste0("download_", plt)]]  <- render_download_bttn(plt, resize = FALSE)
-    output[[paste0("download_rs_", plt)]]  <- render_download_bttn(plt, resize = TRUE)
+    output[[paste0("download_", plt)]]  <- render_download_bttn(plt, resize = FALSE, use_date = input$use_date)
+    output[[paste0("download_rs_", plt)]]  <- render_download_bttn(plt, resize = TRUE, use_date = input$use_date)
     return()
   }
   
