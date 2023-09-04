@@ -202,7 +202,7 @@ uifunc <- function() {
             Shiny.onInputChange("window_width", window_width);
         });
     ')),
-    tabsetPanel(
+    tabsetPanel(id = "mainTabs",
       {tabPanel("Extent Account",
       fluidRow(
         uiOutput("sf_group"),

@@ -16,5 +16,22 @@ test_that("{shinytest2} recording: extent tables", {
   app$set_inputs(map2_sel_col = "CODE_06")
   app$set_inputs(map1_sel_col = "CODE_00")
   app$click("gen_extent")
+  app$wait_for_value(output = "extentTable_2", timeout = 5000)
   app$expect_values()
+})
+
+
+
+test_that("{shinytest2} recording: plots", {
+  app <- AppDriver$new(variant = platform_variant(), name = "plots", seed = 456, 
+                       height = 563, width = 979)
+  app$set_inputs(sel_crs = "4326")
+  app$upload_file(sf1 = "../../../../Hazelwood/hazelwood_CLC2000.zip")
+  app$upload_file(sf2 = "../../../../Hazelwood/hazelwood_CLC2006.zip")
+  app$set_inputs(map2_sel_col = "CODE_06")
+  app$set_inputs(map1_sel_col = "CODE_00")
+  app$click("gen_extent")
+  app$set_inputs(mainTabs = "Composition Plots")
+  app$wait_for_value(output = "plotStack", timeout = 5000)
+  app$expect_screenshot()
 })
