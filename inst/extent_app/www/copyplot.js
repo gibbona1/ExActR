@@ -19,3 +19,8 @@ async function copyplot(plot_id){
     alert("There was an error while copying image to clipboard :/");
   }
 }
+
+function get_img_src(id){
+    var src = document.getElementById(id).childNodes[0].src;
+    Shiny.setInputValue(id+"_img_src", src);
+}

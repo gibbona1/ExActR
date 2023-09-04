@@ -1,6 +1,7 @@
 library(shiny)
 library(shinyjs)
 library(shinyBS)
+library(shinyjqui)
 library(shinydashboard)
 library(colourpicker)
 library(shinycssloaders)
@@ -9,6 +10,9 @@ library(leaflet.extras)
 library(sf)
 library(dplyr)
 library(ggplot2)
+library(magick)
+library(xfun)
+
 
 #need to upload at least .shp, .shx, .dbf, .prj files for each
 #so the map knows where to put itself
@@ -87,10 +91,10 @@ copy_button_group <- function(id, time, idt = paste(id, time, sep = "_")){
 
 plot_copy_group <- function(id){
   wellPanel(
-    plotOutput(id),
+    jqui_resizable(plotOutput(id)),
     actionButton(paste0("copy_", id), "Copy", icon = icon("copy"),
                  onclick = sprintf("copyplot('%s')", id)),
-    downloadButton(paste0("download_", id))
+    downloadButton(paste0("download_", id), onclick = sprintf("get_img_src('%s')", id))
   )
 }
 
@@ -772,8 +776,14 @@ server <- function(input, output, session) {
   render_download_bttn <- function(id){
     downloadHandler(
       filename = function() paste0(id, '-', Sys.Date(), '.png'),
-      content  = function(con) ggsave(con, plots[[id]])
-    )
+      content  = function(con) {
+        # get image code from URI
+        img_src <- gsub("data:.+base64,", "", input[[paste0(id, "_img_src")]])
+        # decode the image code into the image
+        img_src <- image_read(base64_decode(img_src))
+        # save the image
+        image_write(img_src, con)
+      })
   }
   
   downloadPlotOutput <- function(plt){
