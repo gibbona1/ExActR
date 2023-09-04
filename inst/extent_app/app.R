@@ -12,7 +12,7 @@ library(ggplot2)
 
 #need to upload at least .shp, .shx, .dbf, .prj files for each
 #so the map knows where to put itself
-map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
+map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj", ".zip")
 #TODO:
 ## UI
 ### (common) legend outside of map and fully visible
@@ -281,7 +281,12 @@ server <- function(input, output, session) {
       if(!file.exists(renamed_file))
         file.rename(shpdf$datapath[i], renamed_file)
     }
-    tmp_file1 <- file.path(updir, shpdf$name[endsWith(shpdf$name, ".shp")])
+    if(any(endsWith(shpdf$name, ".zip"))){
+      upfiles   <- unzip(file.path(updir, shpdf$name[1]), exdir = updir)
+      tmp_file1 <- upfiles[endsWith(upfiles, ".shp")]
+    } else{
+      tmp_file1 <- file.path(updir, shpdf$name[endsWith(shpdf$name, ".shp")])
+    }
     return(st_read(tmp_file1, quiet = TRUE))
   }
 
