@@ -24,6 +24,7 @@ map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj")
 ### maps should have hover to display codes, areas of polygons etc - mapview?
 ### check if projection or sf_use_s2(FALSE) impacts areas
 ### informative errors - https://shiny.posit.co/r/articles/improve/validation/
+### JSON upload colours
 
 ## Robustness and testing
 ### unit tests
