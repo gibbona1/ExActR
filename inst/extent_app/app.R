@@ -1,18 +1,4 @@
-library(shiny)
-library(shinyjs)
-library(shinyBS)
-library(shinyjqui)
-library(shinydashboard)
-library(colourpicker)
-library(shinycssloaders)
-library(leaflet)
-library(leaflet.extras)
-library(sf)
-library(dplyr)
-library(ggplot2)
-library(magick)
-library(xfun)
-
+pkgload::load_all()
 
 #need to upload at least .shp, .shx, .dbf, .prj files for each
 #so the map knows where to put itself
@@ -54,7 +40,7 @@ crs_list <- crs_data$code
 names(crs_list) <- paste(paste0("EPSG:", crs_list), crs_data$note, sep = " - ")
 default_crs     <- 4326
 
-lookup_file <- "../../data/habitat_codes.csv"
+lookup_file <- "ext_data/habitat_codes.csv"
 
 options(shiny.maxRequestSize = 256 * 1024 ^ 2)
 
