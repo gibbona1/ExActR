@@ -26,7 +26,7 @@ library(leaflet.extras2)
 
 ##will be better to use relative paths long term
 
-farm <- st_read("Shinagh.shp")
+farm <- st_read("../../data/Shinagh.shp")
 
 sf_use_s2(FALSE)# this line can be useful for avoiding issues, it prevents sf reading polygons using the s2 package.
 

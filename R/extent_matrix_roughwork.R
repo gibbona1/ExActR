@@ -1,3 +1,5 @@
+library(shiny)
+
 extentMat <- reactive({
   if(any(sapply(mapIds(), plot_wait)))
     return(NULL)
