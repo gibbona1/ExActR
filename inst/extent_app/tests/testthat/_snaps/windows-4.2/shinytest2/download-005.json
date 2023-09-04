@@ -50,6 +50,42 @@
       "lat": 54.2608225587393
     },
     "plot2_zoom": 13,
+    "plotComp__shinyjquiBookmarkState__resizable": {
+      "width": 883,
+      "height": 400
+    },
+    "plotComp_is_resizing": false,
+    "plotComp_size": {
+      "width": 883,
+      "height": 400
+    },
+    "plotMap1__shinyjquiBookmarkState__resizable": {
+      "width": 883,
+      "height": 400
+    },
+    "plotMap1_is_resizing": false,
+    "plotMap1_size": {
+      "width": 883,
+      "height": 400
+    },
+    "plotMap2__shinyjquiBookmarkState__resizable": {
+      "width": 883,
+      "height": 400
+    },
+    "plotMap2_is_resizing": false,
+    "plotMap2_size": {
+      "width": 883,
+      "height": 400
+    },
+    "plotStack__shinyjquiBookmarkState__resizable": {
+      "width": 883,
+      "height": 400
+    },
+    "plotStack_is_resizing": false,
+    "plotStack_size": {
+      "width": 883,
+      "height": 400
+    },
     "sel_crs": "4326",
     "sf1": {
       "name": [
@@ -123,8 +159,47 @@
       ]
     },
     "extentPlots": {
-      "html": "<div>\n  <head>\n    <script src=\"copyplot.js\"><\/script>\n  <\/head>\n  <div class=\"well\">\n    <div class=\"shiny-plot-output html-fill-item\" id=\"plotComp\" style=\"width:100%;height:400px;\"><\/div>\n    <button id=\"copy_plotComp\" type=\"button\" class=\"btn btn-default action-button\" onclick=\"copyplot(&#39;plotComp&#39;)\">\n      <i class=\"far fa-copy\" role=\"presentation\" aria-label=\"copy icon\"><\/i>\n      Copy\n    <\/button>\n    <a id=\"download_plotComp\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download>\n      <i class=\"fas fa-download\" role=\"presentation\" aria-label=\"download icon\"><\/i>\n      Download\n    <\/a>\n  <\/div>\n  <div class=\"well\">\n    <div class=\"shiny-plot-output html-fill-item\" id=\"plotStack\" style=\"width:100%;height:400px;\"><\/div>\n    <button id=\"copy_plotStack\" type=\"button\" class=\"btn btn-default action-button\" onclick=\"copyplot(&#39;plotStack&#39;)\">\n      <i class=\"far fa-copy\" role=\"presentation\" aria-label=\"copy icon\"><\/i>\n      Copy\n    <\/button>\n    <a id=\"download_plotStack\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download>\n      <i class=\"fas fa-download\" role=\"presentation\" aria-label=\"download icon\"><\/i>\n      Download\n    <\/a>\n  <\/div>\n  <div class=\"well\">\n    <div class=\"shiny-plot-output html-fill-item\" id=\"plotMap1\" style=\"width:100%;height:400px;\"><\/div>\n    <button id=\"copy_plotMap1\" type=\"button\" class=\"btn btn-default action-button\" onclick=\"copyplot(&#39;plotMap1&#39;)\">\n      <i class=\"far fa-copy\" role=\"presentation\" aria-label=\"copy icon\"><\/i>\n      Copy\n    <\/button>\n    <a id=\"download_plotMap1\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download>\n      <i class=\"fas fa-download\" role=\"presentation\" aria-label=\"download icon\"><\/i>\n      Download\n    <\/a>\n  <\/div>\n  <div class=\"well\">\n    <div class=\"shiny-plot-output html-fill-item\" id=\"plotMap2\" style=\"width:100%;height:400px;\"><\/div>\n    <button id=\"copy_plotMap2\" type=\"button\" class=\"btn btn-default action-button\" onclick=\"copyplot(&#39;plotMap2&#39;)\">\n      <i class=\"far fa-copy\" role=\"presentation\" aria-label=\"copy icon\"><\/i>\n      Copy\n    <\/button>\n    <a id=\"download_plotMap2\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download>\n      <i class=\"fas fa-download\" role=\"presentation\" aria-label=\"download icon\"><\/i>\n      Download\n    <\/a>\n  <\/div>\n<\/div>",
+      "html": "<div>\n  <head>\n    <script src=\"copyplot.js\"><\/script>\n  <\/head>\n  <div class=\"well\">\n    <div class=\"shiny-plot-output html-fill-item\" id=\"plotComp\" style=\"width:100%;height:400px;\"><\/div>\n    <iframe srcdoc=\"&lt;p&gt;cant catch me&lt;/p&gt;\" class=\"jqui_self_cleaning_script\" style=\"width:0;height:0;border:none;display:none !important\" onload=\"$(function(){$(document).one(&#10;            events   = &quot;shiny:value&quot;,&#10;            selector = &quot;[id=&#39;plotComp&#39;]&quot;,&#10;            handler  = function(e) { setTimeout(function(){shinyjqui.msgCallback({&quot;ui&quot;:&quot;[id=&#39;plotComp&#39;]&quot;,&quot;type&quot;:&quot;interaction&quot;,&quot;func&quot;:&quot;resizable&quot;,&quot;operation&quot;:&quot;enable&quot;,&quot;options&quot;:{},&quot;debug&quot;:false,&quot;_js_idx&quot;:{&quot;ui&quot;:false,&quot;type&quot;:false,&quot;func&quot;:false,&quot;operation&quot;:false,&quot;options&quot;:[],&quot;debug&quot;:false}});&#10;      $(&quot;.jqui_self_cleaning_script&quot;).remove();}, 10); }&#10;        );});\"><\/iframe>\n    <button id=\"copy_plotComp\" type=\"button\" class=\"btn btn-default action-button\" onclick=\"copyplot(&#39;plotComp&#39;)\">\n      <i class=\"far fa-copy\" role=\"presentation\" aria-label=\"copy icon\"><\/i>\n      Copy\n    <\/button>\n    <a id=\"download_plotComp\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download>\n      <i class=\"fas fa-download\" role=\"presentation\" aria-label=\"download icon\"><\/i>\n      Download Original\n    <\/a>\n    <a id=\"download_rs_plotComp\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download onclick=\"get_img_src(&#39;plotComp&#39;)\">\n      <i class=\"fas fa-download\" role=\"presentation\" aria-label=\"download icon\"><\/i>\n      Download Resized\n    <\/a>\n  <\/div>\n  <div class=\"well\">\n    <div class=\"shiny-plot-output html-fill-item\" id=\"plotStack\" style=\"width:100%;height:400px;\"><\/div>\n    <iframe srcdoc=\"&lt;p&gt;cant catch me&lt;/p&gt;\" class=\"jqui_self_cleaning_script\" style=\"width:0;height:0;border:none;display:none !important\" onload=\"$(function(){$(document).one(&#10;            events   = &quot;shiny:value&quot;,&#10;            selector = &quot;[id=&#39;plotStack&#39;]&quot;,&#10;            handler  = function(e) { setTimeout(function(){shinyjqui.msgCallback({&quot;ui&quot;:&quot;[id=&#39;plotStack&#39;]&quot;,&quot;type&quot;:&quot;interaction&quot;,&quot;func&quot;:&quot;resizable&quot;,&quot;operation&quot;:&quot;enable&quot;,&quot;options&quot;:{},&quot;debug&quot;:false,&quot;_js_idx&quot;:{&quot;ui&quot;:false,&quot;type&quot;:false,&quot;func&quot;:false,&quot;operation&quot;:false,&quot;options&quot;:[],&quot;debug&quot;:false}});&#10;      $(&quot;.jqui_self_cleaning_script&quot;).remove();}, 10); }&#10;        );});\"><\/iframe>\n    <button id=\"copy_plotStack\" type=\"button\" class=\"btn btn-default action-button\" onclick=\"copyplot(&#39;plotStack&#39;)\">\n      <i class=\"far fa-copy\" role=\"presentation\" aria-label=\"copy icon\"><\/i>\n      Copy\n    <\/button>\n    <a id=\"download_plotStack\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download>\n      <i class=\"fas fa-download\" role=\"presentation\" aria-label=\"download icon\"><\/i>\n      Download Original\n    <\/a>\n    <a id=\"download_rs_plotStack\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download onclick=\"get_img_src(&#39;plotStack&#39;)\">\n      <i class=\"fas fa-download\" role=\"presentation\" aria-label=\"download icon\"><\/i>\n      Download Resized\n    <\/a>\n  <\/div>\n  <div class=\"well\">\n    <div class=\"shiny-plot-output html-fill-item\" id=\"plotMap1\" style=\"width:100%;height:400px;\"><\/div>\n    <iframe srcdoc=\"&lt;p&gt;cant catch me&lt;/p&gt;\" class=\"jqui_self_cleaning_script\" style=\"width:0;height:0;border:none;display:none !important\" onload=\"$(function(){$(document).one(&#10;            events   = &quot;shiny:value&quot;,&#10;            selector = &quot;[id=&#39;plotMap1&#39;]&quot;,&#10;            handler  = function(e) { setTimeout(function(){shinyjqui.msgCallback({&quot;ui&quot;:&quot;[id=&#39;plotMap1&#39;]&quot;,&quot;type&quot;:&quot;interaction&quot;,&quot;func&quot;:&quot;resizable&quot;,&quot;operation&quot;:&quot;enable&quot;,&quot;options&quot;:{},&quot;debug&quot;:false,&quot;_js_idx&quot;:{&quot;ui&quot;:false,&quot;type&quot;:false,&quot;func&quot;:false,&quot;operation&quot;:false,&quot;options&quot;:[],&quot;debug&quot;:false}});&#10;      $(&quot;.jqui_self_cleaning_script&quot;).remove();}, 10); }&#10;        );});\"><\/iframe>\n    <button id=\"copy_plotMap1\" type=\"button\" class=\"btn btn-default action-button\" onclick=\"copyplot(&#39;plotMap1&#39;)\">\n      <i class=\"far fa-copy\" role=\"presentation\" aria-label=\"copy icon\"><\/i>\n      Copy\n    <\/button>\n    <a id=\"download_plotMap1\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download>\n      <i class=\"fas fa-download\" role=\"presentation\" aria-label=\"download icon\"><\/i>\n      Download Original\n    <\/a>\n    <a id=\"download_rs_plotMap1\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download onclick=\"get_img_src(&#39;plotMap1&#39;)\">\n      <i class=\"fas fa-download\" role=\"presentation\" aria-label=\"download icon\"><\/i>\n      Download Resized\n    <\/a>\n  <\/div>\n  <div class=\"well\">\n    <div class=\"shiny-plot-output html-fill-item\" id=\"plotMap2\" style=\"width:100%;height:400px;\"><\/div>\n    <iframe srcdoc=\"&lt;p&gt;cant catch me&lt;/p&gt;\" class=\"jqui_self_cleaning_script\" style=\"width:0;height:0;border:none;display:none !important\" onload=\"$(function(){$(document).one(&#10;            events   = &quot;shiny:value&quot;,&#10;            selector = &quot;[id=&#39;plotMap2&#39;]&quot;,&#10;            handler  = function(e) { setTimeout(function(){shinyjqui.msgCallback({&quot;ui&quot;:&quot;[id=&#39;plotMap2&#39;]&quot;,&quot;type&quot;:&quot;interaction&quot;,&quot;func&quot;:&quot;resizable&quot;,&quot;operation&quot;:&quot;enable&quot;,&quot;options&quot;:{},&quot;debug&quot;:false,&quot;_js_idx&quot;:{&quot;ui&quot;:false,&quot;type&quot;:false,&quot;func&quot;:false,&quot;operation&quot;:false,&quot;options&quot;:[],&quot;debug&quot;:false}});&#10;      $(&quot;.jqui_self_cleaning_script&quot;).remove();}, 10); }&#10;        );});\"><\/iframe>\n    <button id=\"copy_plotMap2\" type=\"button\" class=\"btn btn-default action-button\" onclick=\"copyplot(&#39;plotMap2&#39;)\">\n      <i class=\"far fa-copy\" role=\"presentation\" aria-label=\"copy icon\"><\/i>\n      Copy\n    <\/button>\n    <a id=\"download_plotMap2\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download>\n      <i class=\"fas fa-download\" role=\"presentation\" aria-label=\"download icon\"><\/i>\n      Download Original\n    <\/a>\n    <a id=\"download_rs_plotMap2\" class=\"btn btn-default shiny-download-link \" href=\"\" target=\"_blank\" download onclick=\"get_img_src(&#39;plotMap2&#39;)\">\n      <i class=\"fas fa-download\" role=\"presentation\" aria-label=\"download icon\"><\/i>\n      Download Resized\n    <\/a>\n  <\/div>\n<\/div>",
       "deps": [
+        {
+          "name": "jqueryui",
+          "version": "1.12.1",
+          "src": {
+            "href": "jqueryui-1.12.1"
+          },
+          "meta": null,
+          "script": "jquery-ui.min.js",
+          "stylesheet": "jquery-ui.css",
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        },
+        {
+          "name": "touch-punch",
+          "version": "0.2.3",
+          "src": {
+            "href": "touch-punch-0.2.3"
+          },
+          "meta": null,
+          "script": "jquery.ui.touch-punch.min.js",
+          "stylesheet": null,
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        },
+        {
+          "name": "shinyjqui-assets",
+          "version": "0.4.0",
+          "src": {
+            "href": "shinyjqui-assets-0.4.0"
+          },
+          "meta": null,
+          "script": "shinyjqui.min.js",
+          "stylesheet": null,
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        },
         {
           "name": "font-awesome",
           "version": "6.4.0",
@@ -4957,7 +5032,7 @@
       }
     },
     "sf_group": {
-      "html": "<div class=\"sfdiv-container\">\n  <div class=\"sfdiv-item\">\n    <div class=\"form-group shiny-input-container\" style=\"width:391px;\">\n      <label class=\"control-label\" id=\"sf1-label\" for=\"sf1\">Upload Opening Map (1)<\/label>\n      <div class=\"input-group\">\n        <label class=\"input-group-btn input-group-prepend\">\n          <span class=\"btn btn-default btn-file\">\n            Browse...\n            <input id=\"sf1\" name=\"sf1\" type=\"file\" style=\"position: absolute !important; top: -99999px !important; left: -99999px !important;\" multiple=\"multiple\" accept=\".shp,.dbf,.sbn,.sbx,.shx,.prj,.zip\"/>\n          <\/span>\n        <\/label>\n        <input type=\"text\" class=\"form-control\" placeholder=\"No file selected\" readonly=\"readonly\"/>\n      <\/div>\n      <div id=\"sf1_progress\" class=\"progress active shiny-file-input-progress\">\n        <div class=\"progress-bar\"><\/div>\n      <\/div>\n    <\/div>\n    <style>white-space: pre-wrap;<\/style>\n    <div class=\"form-group shiny-input-container\">\n      <label class=\"control-label shiny-label-null\" for=\"sf1_name\" id=\"sf1_name-label\"><\/label>\n      <input id=\"sf1_name\" type=\"text\" class=\"form-control\" value=\"hazelwood_CLC2000\"/>\n    <\/div>\n    <div class=\"leaflet html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item\" id=\"plot1\" style=\"width:100%;height:400px;\"><\/div>\n    <div id=\"map1col\" class=\"shiny-html-output\"><\/div>\n    <div class=\"form-group shiny-input-container\">\n      <div class=\"checkbox\">\n        <label>\n          <input id=\"map1_include\" type=\"checkbox\" checked=\"checked\"/>\n          <span>Show Map<\/span>\n        <\/label>\n      <\/div>\n    <\/div>\n  <\/div>\n  <div class=\"sfdiv-item\">\n    <div class=\"form-group shiny-input-container\" style=\"width:391px;\">\n      <label class=\"control-label\" id=\"sf2-label\" for=\"sf2\">Upload Closing Map (2)<\/label>\n      <div class=\"input-group\">\n        <label class=\"input-group-btn input-group-prepend\">\n          <span class=\"btn btn-default btn-file\">\n            Browse...\n            <input id=\"sf2\" name=\"sf2\" type=\"file\" style=\"position: absolute !important; top: -99999px !important; left: -99999px !important;\" multiple=\"multiple\" accept=\".shp,.dbf,.sbn,.sbx,.shx,.prj,.zip\"/>\n          <\/span>\n        <\/label>\n        <input type=\"text\" class=\"form-control\" placeholder=\"No file selected\" readonly=\"readonly\"/>\n      <\/div>\n      <div id=\"sf2_progress\" class=\"progress active shiny-file-input-progress\">\n        <div class=\"progress-bar\"><\/div>\n      <\/div>\n    <\/div>\n    <style>white-space: pre-wrap;<\/style>\n    <div class=\"form-group shiny-input-container\">\n      <label class=\"control-label shiny-label-null\" for=\"sf2_name\" id=\"sf2_name-label\"><\/label>\n      <input id=\"sf2_name\" type=\"text\" class=\"form-control\" value=\"hazelwood_CLC2006\"/>\n    <\/div>\n    <div class=\"leaflet html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item\" id=\"plot2\" style=\"width:100%;height:400px;\"><\/div>\n    <div id=\"map2col\" class=\"shiny-html-output\"><\/div>\n    <div class=\"form-group shiny-input-container\">\n      <div class=\"checkbox\">\n        <label>\n          <input id=\"map2_include\" type=\"checkbox\" checked=\"checked\"/>\n          <span>Show Map<\/span>\n        <\/label>\n      <\/div>\n    <\/div>\n  <\/div>\n<\/div>",
+      "html": "<div class=\"sfdiv-container\">\n  <div id=\"sf1_grp\" class=\"sfdiv-item\">\n    <div class=\"form-group shiny-input-container\" style=\"width:391px;\">\n      <label class=\"control-label\" id=\"sf1-label\" for=\"sf1\">Upload Opening Map (1)<\/label>\n      <div class=\"input-group\">\n        <label class=\"input-group-btn input-group-prepend\">\n          <span class=\"btn btn-default btn-file\">\n            Browse...\n            <input id=\"sf1\" name=\"sf1\" type=\"file\" style=\"position: absolute !important; top: -99999px !important; left: -99999px !important;\" multiple=\"multiple\" accept=\".shp,.dbf,.sbn,.sbx,.shx,.prj,.zip\"/>\n          <\/span>\n        <\/label>\n        <input type=\"text\" class=\"form-control\" placeholder=\"No file selected\" readonly=\"readonly\"/>\n      <\/div>\n      <div id=\"sf1_progress\" class=\"progress active shiny-file-input-progress\">\n        <div class=\"progress-bar\"><\/div>\n      <\/div>\n    <\/div>\n    <style>white-space: pre-wrap;<\/style>\n    <div class=\"form-group shiny-input-container\">\n      <label class=\"control-label shiny-label-null\" for=\"sf1_name\" id=\"sf1_name-label\"><\/label>\n      <input id=\"sf1_name\" type=\"text\" class=\"form-control\" value=\"hazelwood_CLC2000\"/>\n    <\/div>\n    <div class=\"leaflet html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item\" id=\"plot1\" style=\"width:100%;height:400px;\"><\/div>\n    <div id=\"map1col\" class=\"shiny-html-output\"><\/div>\n    <div class=\"form-group shiny-input-container\">\n      <div class=\"checkbox\">\n        <label>\n          <input id=\"map1_include\" type=\"checkbox\" checked=\"checked\"/>\n          <span>Show Map<\/span>\n        <\/label>\n      <\/div>\n    <\/div>\n  <\/div>\n  <div id=\"sf2_grp\" class=\"sfdiv-item\">\n    <div class=\"form-group shiny-input-container\" style=\"width:391px;\">\n      <label class=\"control-label\" id=\"sf2-label\" for=\"sf2\">Upload Closing Map (2)<\/label>\n      <div class=\"input-group\">\n        <label class=\"input-group-btn input-group-prepend\">\n          <span class=\"btn btn-default btn-file\">\n            Browse...\n            <input id=\"sf2\" name=\"sf2\" type=\"file\" style=\"position: absolute !important; top: -99999px !important; left: -99999px !important;\" multiple=\"multiple\" accept=\".shp,.dbf,.sbn,.sbx,.shx,.prj,.zip\"/>\n          <\/span>\n        <\/label>\n        <input type=\"text\" class=\"form-control\" placeholder=\"No file selected\" readonly=\"readonly\"/>\n      <\/div>\n      <div id=\"sf2_progress\" class=\"progress active shiny-file-input-progress\">\n        <div class=\"progress-bar\"><\/div>\n      <\/div>\n    <\/div>\n    <style>white-space: pre-wrap;<\/style>\n    <div class=\"form-group shiny-input-container\">\n      <label class=\"control-label shiny-label-null\" for=\"sf2_name\" id=\"sf2_name-label\"><\/label>\n      <input id=\"sf2_name\" type=\"text\" class=\"form-control\" value=\"hazelwood_CLC2006\"/>\n    <\/div>\n    <div class=\"leaflet html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item\" id=\"plot2\" style=\"width:100%;height:400px;\"><\/div>\n    <div id=\"map2col\" class=\"shiny-html-output\"><\/div>\n    <div class=\"form-group shiny-input-container\">\n      <div class=\"checkbox\">\n        <label>\n          <input id=\"map2_include\" type=\"checkbox\" checked=\"checked\"/>\n          <span>Show Map<\/span>\n        <\/label>\n      <\/div>\n    <\/div>\n  <\/div>\n<\/div>",
       "deps": [
         {
           "name": "htmlwidgets",

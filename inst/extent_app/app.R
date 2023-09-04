@@ -94,7 +94,8 @@ plot_copy_group <- function(id){
     jqui_resizable(plotOutput(id)),
     actionButton(paste0("copy_", id), "Copy", icon = icon("copy"),
                  onclick = sprintf("copyplot('%s')", id)),
-    downloadButton(paste0("download_", id), onclick = sprintf("get_img_src('%s')", id))
+    downloadButton(paste0("download_", id),    label = "Download Original"),
+    downloadButton(paste0("download_rs_", id), label = "Download Resized", onclick = sprintf("get_img_src('%s')", id))
   )
 }
 
@@ -773,21 +774,26 @@ server <- function(input, output, session) {
     return()
   }
   
-  render_download_bttn <- function(id){
+  render_download_bttn <- function(id, resize = TRUE){
     downloadHandler(
       filename = function() paste0(id, '-', Sys.Date(), '.png'),
       content  = function(con) {
-        # get image code from URI
-        img_src <- gsub("data:.+base64,", "", input[[paste0(id, "_img_src")]])
-        # decode the image code into the image
-        img_src <- image_read(base64_decode(img_src))
-        # save the image
-        image_write(img_src, con)
+        if(resize){
+          # get image code from URI
+          img_src <- gsub("data:.+base64,", "", input[[paste0(id, "_img_src")]])
+          # decode the image code into the image
+          img_src <- image_read(base64_decode(img_src))
+          # save the image
+          image_write(img_src, con)
+        } else {
+          ggsave(con, plots[[id]])
+        }
       })
   }
   
   downloadPlotOutput <- function(plt){
-    output[[paste0("download_", plt)]]  <- render_download_bttn(plt)
+    output[[paste0("download_", plt)]]  <- render_download_bttn(plt, resize = FALSE)
+    output[[paste0("download_rs_", plt)]]  <- render_download_bttn(plt, resize = TRUE)
     return()
   }
   

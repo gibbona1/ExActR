@@ -2,7 +2,7 @@ library(shinytest2)
 
 test_that("{shinytest2} recording: basic", {
   app <- AppDriver$new(variant = platform_variant(), name = "basic", seed = 123, 
-      height = 563, width = 979)
+                       height = 563, width = 979)
   app$set_inputs(sel_crs = "4326")
   app$expect_screenshot()
 })
@@ -39,7 +39,7 @@ test_that("{shinytest2} recording: plots", {
 
 test_that("{shinytest2} recording: download", {
   app <- AppDriver$new(variant = platform_variant(), name = "download", seed = 111, 
-      height = 563, width = 979)
+                       height = 563, width = 979)
   app$set_inputs(sel_crs = "4326")
   app$upload_file(sf1 = "../../../../Hazelwood/hazelwood_CLC2000.zip")
   app$upload_file(sf2 = "../../../../Hazelwood/hazelwood_CLC2006.zip")
