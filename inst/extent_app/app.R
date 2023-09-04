@@ -30,8 +30,8 @@ map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj", ".zip")
 ### unit tests
 ### - open close
 ### - tables generate nonnegative values
-### - generate tables (copy/download)
-### - generate plots (copy/download)
+### - generate tables (copy functionality)
+### - generate plots (copy/download functionality)
 ### check on different browsers
 ### https://rstudio.github.io/shinytest2/articles/robust.html
 
