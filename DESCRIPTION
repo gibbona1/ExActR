@@ -15,7 +15,6 @@ Imports:
   shinyBS,
   shinyjqui,
   shinydashboard,
-  colourpicker,
   shinycssloaders,
   leaflet,
   leaflet.extras,

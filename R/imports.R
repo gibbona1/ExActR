@@ -1,10 +1,9 @@
 #' @import shiny
-#' @import shinyjs
+#' @rawNamespace import(shinyjs, except=c(runExample))
 #' @import shinyBS
 #' @import shinyjqui
 #' @import shinydashboard
 #' @import shinycssloaders
-#' @importFrom colourpicker colourInput
 #' @import leaflet
 #' @import leaflet.extras
 #' @import viridis
