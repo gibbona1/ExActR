@@ -427,6 +427,7 @@ server <- function(input, output, session) {
   
   observe({
     for(id in mapIds()){
+      coppybttnOutput("expTable", id)
       renderLeafletPlot(id)
       renderMapPlot(id)
       renderExpTable(paste0(id))
@@ -663,7 +664,7 @@ server <- function(input, output, session) {
   }
   
   render_copybttns <- function(id, time){
-    if(!input$gen_extent)
+    if(any(sapply(mapIds(), plot_wait)))
       return(NULL)
     return(copy_button_group(id, time))
   }
@@ -798,7 +799,9 @@ server <- function(input, output, session) {
                        ~ div(h3(sprintf("%s Data (%s) - %s", 
                                         map_oc(.x, mapIds()), .x, 
                                         get_sf_name(.x))),
-                             tableOutput(paste0("expTable", .x))))
+                             tableOutput(paste("expTable", .x, sep = "_")),
+                             uiOutput(paste("copybttn", "expTable", .x, sep = "_"))
+                             ))
             )
   })
   
@@ -814,7 +817,7 @@ server <- function(input, output, session) {
   }
   
   renderExpTable <- function(id){
-    output[[paste0("expTable", id)]] <- renderTable({
+    output[[paste("expTable", id, sep = "_")]] <- renderTable({
       col  <- ifelse(id == "1", "open", "close")
       time <- ifelse(id == "1", "2", id)
       return(get_explore_table(time, col, changeData()))
