@@ -7,3 +7,5 @@
 Repository for what will hopefully be an automated programme to ingest a habitat map at two points in time and output an extent and condition account.
 
 Starting with an extent account to get the ball rolling.
+
+A demo deployment of the Extent Account Shiny App is available [here](https://gibbona1.shinyapps.io/extent_app/)
