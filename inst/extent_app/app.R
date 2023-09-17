@@ -260,6 +260,7 @@ uifunc <- function() {
 
 server <- function(input, output, session) {
   plots  <- reactiveValues()
+  tables <- reactiveValues()
   mapIds <- reactiveVal(1:2)
   sfRaws <- reactiveValues()
   sfs    <- reactiveValues()
@@ -269,6 +270,15 @@ server <- function(input, output, session) {
     for(plt in p_names)
       plots[[plt]] <- NULL
     return(p_names)
+  })
+  
+  tab_names <- reactive({
+    p_ids <- function(nm, ids = mapIds()[-1]) paste(nm, ids, sep = "_")
+    t_names <- c(p_ids("extentTable"), p_ids("extentPercentTable"), 
+                 p_ids("extentMatrix"), p_ids("expTable", ids = mapIds()))
+    for(tab in t_names)
+      tables[[tab]] <- NULL
+    return(t_names)
   })
   
   updateSelectizeInput(session, "sel_crs", choices = crs_list, 
@@ -571,10 +581,11 @@ server <- function(input, output, session) {
   sf_null <- function(i) is.null(input[[sfid(i)]])
   
   renderExtentTable <- function(id){
-    output[[paste("extentTable", id, sep = "_")]] <- renderTable({
+    t_id <- paste("extentTable", id, sep = "_")
+    output[[t_id]] <- renderTable({
       extent_df       <- extentData()[[id]]
       extent_df$Total <- rowSums(extent_df)
-      extent_df <- apply(extent_df, 2, clean_zero)
+      tables[[t_id]] <- extent_df <- apply(extent_df, 2, clean_zero)
       return(extent_df)
     }, rownames = TRUE)
     return()
@@ -582,11 +593,12 @@ server <- function(input, output, session) {
   
   renderExtentPercentTable <- function(id){
     #the change portions can be represented as a percent of the opening
-    output[[paste("extentPercentTable", id, sep = "_")]] <- renderTable({
+    t_id <- paste("extentPercentTable", id, sep = "_")
+    output[[t_id]] <- renderTable({
       extent_df  <- extentData()[[id]]
       df <- as.data.frame(sapply(extent_df, function(x) x[2:4] / x[1]))
       rownames(df) <- rownames(extent_df)[2:4]
-      df <- apply(df, 2, clean_zero)
+      tables[[t_id]] <- df <- apply(df, 2, clean_zero)
       return(df)
     }, rownames = TRUE)
   }
@@ -641,11 +653,13 @@ server <- function(input, output, session) {
   })
 
   renderExtentMatrix <- function(id){
-    output[[paste("extentMatrix", id, sep = "_")]] <- renderTable({
+    t_id <- paste("extentMatrix", id, sep = "_")
+    output[[t_id]] <- renderTable({
       code_grps <- codeGroupsLookup()
       ext_mat <- extentMat()[[id]]
       colnames(ext_mat)[1:length(code_grps)] <- code_grps
       rownames(ext_mat)[1:length(code_grps)] <- code_grps
+      tables[[t_id]] <- ext_mat
       return(ext_mat)
     }, rownames = TRUE)
   }
@@ -804,6 +818,9 @@ server <- function(input, output, session) {
   observe({
     for(plt in plot_names())
       downloadPlotOutput(plt)
+    for(tab in tab_names()){
+      #do nothing
+    }
   })
   
   output$habitatExplorer <- renderUI({
@@ -833,10 +850,12 @@ server <- function(input, output, session) {
   }
   
   renderExpTable <- function(id){
-    output[[paste("expTable", id, sep = "_")]] <- renderTable({
+    t_id <- paste("expTable", id, sep = "_")
+    output[[t_id]] <- renderTable({
       col  <- ifelse(id == "1", "open", "close")
       time <- ifelse(id == "1", "2", id)
-      return(get_explore_table(time, col, changeData()))
+      tables[[t_id]] <- df <- get_explore_table(time, col, changeData())
+      return(df)
     }, sanitize.text.function = function(x) x)
     return()
   }
@@ -854,18 +873,22 @@ server <- function(input, output, session) {
   output$bundleResults <- downloadHandler(
     filename = function() paste0("bundleData-", Sys.Date(), ".zip"),
     content  = function(con) {
-      if(!input$gen_extent)
-        return()
-    
       temp_dir <- tempdir()
       setwd(tempdir())
       
+      download_table <- function(tab){
+        tab_df <- tables[[tab]]
+        if(is.null(tab_df))
+          return()
+        write.csv(tab_df, paste0(tab, ".csv"))
+        write.table(tab_df, paste0(tab, ".txt"))
+        print(xtable::xtable(tab_df), type = "latex", file = paste0(tab, ".tex"))
+        print(xtable::xtable(tab_df), type = "html", file = paste0(tab, "html"))
+      }
+      
       #tables in latex, text and HTML format
-      ##extent
-      ##extent percent
-      ##extent matrix
-      ##extent pair
-      ##explore tables
+      for(tab in tab_names())
+        download_table(tab)
       
       #plots in png and pdf format
       for(plt in plot_names()){
@@ -874,7 +897,9 @@ server <- function(input, output, session) {
       }
       
       #might need to save Rdata or log (at least inputs)
-      zip(zipfile = con, files = list.files(temp_dir))
+      z_files <- list.files(pattern = "\\.(pdf|png|html|txt|tex)$")
+      #browser()
+      zip(zipfile = con, files = z_files)
   }, contentType = "application/zip")
 }
 

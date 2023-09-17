@@ -13,4 +13,5 @@
 #' @import xfun
 #' @import dplyr
 #' @import stringr
+#' @import xtable
 NULL
