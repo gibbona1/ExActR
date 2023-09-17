@@ -159,13 +159,29 @@ uifunc <- function() {
       actionButton("addTimePoint", 
                    label = "Add Time Point", 
                    icon  = icon("plus-circle"), 
-                   style = 'margin-top:25px; color: white;',
+                   #style = 'margin-top:25px; color: white;',
                    class = "btn-success"),
       actionButton("delTimePoint", 
                    label = "Delete Time Point", 
                    icon  = icon("minus-circle"), 
-                   style = 'margin-top:25px; color: white;',
+                   #style = 'margin-top:25px; color: white;',
                    class = "btn-danger"),
+      downloadButton("bundleResults", 
+                   label = "Download all results", 
+                   style = 'margin-left:15px;',
+                   class = "btn-warning"),
+      tags$script(HTML('
+        $(document).ready(function() {
+          var actionButton = document.getElementById("addTimePoint");
+          var downloadButton = document.getElementById("bundleResults");
+          
+          // Get the computed style of the action button
+          var textColor = window.getComputedStyle(actionButton).color;
+          
+          // Apply the computed text color to the download button
+          downloadButton.style.color = textColor;
+        });
+      ')),
       fileInput("lookupFile", "Upload Lookup table", accept = ".csv"),
       verbatimTextOutput("lookup_file"),
       checkboxInput("use_codes", "Use code lookup", value = FALSE),
@@ -834,6 +850,32 @@ server <- function(input, output, session) {
         runjs(sprintf("colourExtentDiag('%s', '%s')", ext_id, diag_col))
       }
   })
+  
+  output$bundleResults <- downloadHandler(
+    filename = function() paste0("bundleData-", Sys.Date(), ".zip"),
+    content  = function(con) {
+      if(!input$gen_extent)
+        return()
+    
+      temp_dir <- tempdir()
+      setwd(tempdir())
+      
+      #tables in latex, text and HTML format
+      ##extent
+      ##extent percent
+      ##extent matrix
+      ##extent pair
+      ##explore tables
+      
+      #plots in png and pdf format
+      for(plt in plot_names()){
+        ggsave(paste0(plt, ".png"), plots[[plt]])
+        ggsave(paste0(plt, ".pdf"), plots[[plt]])
+      }
+      
+      #might need to save Rdata or log (at least inputs)
+      zip(zipfile = con, files = list.files(temp_dir))
+  }, contentType = "application/zip")
 }
 
 shinyApp(uifunc(), server)
