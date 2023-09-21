@@ -880,10 +880,14 @@ server <- function(input, output, session) {
         tab_df <- tables[[tab]]
         if(is.null(tab_df))
           return()
+        if(startsWith(tab, "expTab")){
+          colnames(tab_df)[2] <- "Area (m\\textsuperscript{2})"
+          colnames(tab_df)[4] <- "\\% Coverage"
+        }
         write.csv(tab_df, paste0(tab, ".csv"))
         write.table(tab_df, paste0(tab, ".txt"))
-        print(xtable::xtable(tab_df), type = "latex", file = paste0(tab, ".tex"))
-        print(xtable::xtable(tab_df), type = "html", file = paste0(tab, "html"))
+        print(xtable::xtable(tab_df), type = "latex", file = paste0(tab, ".tex"), 
+              sanitize.text.function = identity)
       }
       
       #tables in latex, text and HTML format
@@ -892,6 +896,8 @@ server <- function(input, output, session) {
       
       #plots in png and pdf format
       for(plt in plot_names()){
+        if(is.null(plots[[plt]]))
+          next
         ggsave(paste0(plt, ".png"), plots[[plt]])
         ggsave(paste0(plt, ".pdf"), plots[[plt]])
       }
