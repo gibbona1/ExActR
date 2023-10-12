@@ -378,6 +378,16 @@ server <- function(input, output, session) {
   
   chng_time <- function(id)
     sprintf("(%s - %s)", get_sf_name(as.integer(id)-1), get_sf_name(id))
+  
+  tab_caption <- function(tab){
+    tab_split <- str_split(tab, "_")[[1]]
+    tname <- tab_split[1]
+    id    <- as.integer(tab_split[2])
+    if(tname == "expTable")
+      return(sprintf("%s: %s", tab, get_sf_name(id)))
+    else
+      return(sprintf("%s: %s - %s", tab, get_sf_name(id-1), get_sf_name(id)))
+  }
                                            
   tabtitle <- function(id, nm) return(paste(nm, chng_time(id)))
   
