@@ -1,5 +1,6 @@
 #' @import shiny
-#' @rawNamespace import(shinyjs, except=c(runExample))
+#' @import colourpicker
+#' @rawNamespace import(shinyjs, except=c(runExample, colourInput))
 #' @import shinyBS
 #' @import shinyjqui
 #' @import shinydashboard

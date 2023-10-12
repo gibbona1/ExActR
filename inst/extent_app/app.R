@@ -509,7 +509,7 @@ server <- function(input, output, session) {
     
     do.call(div, 
             purrr::map(code_grp, 
-                       ~ colourInput(colpicker_id(.x),
+                       ~ colourpicker::colourInput(colpicker_id(.x),
                                      label = .x,
                                      value = vir_palette(.x)
                                      )
@@ -904,7 +904,7 @@ server <- function(input, output, session) {
       
       #might need to save Rdata or log (at least inputs)
       z_files <- list.files(pattern = "\\.(pdf|png|html|txt|tex)$")
-      #browser()
+
       zip(zipfile = con, files = z_files)
   }, contentType = "application/zip")
 }
