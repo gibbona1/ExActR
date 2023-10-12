@@ -625,6 +625,10 @@ server <- function(input, output, session) {
       
       #I think it's faster to intersect everything up front and then lookup
       df_int <- st_intersection(df1, df2)
+      #browser()
+      #plot_extent(df1, grp_col1, get_sf_name(1))
+      #plot_extent(df2, grp_col2, get_sf_name(1))
+      #plot_extent(df_int %>% filter(df_int[[grp_col1]]!=df_int[[grp_col2]]), grp_col1, get_sf_name(1))
       
       cross_mat <- do.call(rbind, 
               lapply(code_grps, function(grp1) {
@@ -886,7 +890,8 @@ server <- function(input, output, session) {
         }
         write.csv(tab_df, paste0(tab, ".csv"))
         write.table(tab_df, paste0(tab, ".txt"))
-        print(xtable::xtable(tab_df), type = "latex", file = paste0(tab, ".tex"), 
+        print(xtable::xtable(tab_df, caption = str_replace_all(tab_caption(tab), "_", "\\\\_")), 
+              type = "latex", file = paste0(tab, ".tex"), 
               sanitize.text.function = identity)
       }
       
