@@ -321,8 +321,8 @@ server <- function(input, output, session) {
     unchanged_A <- ext_mat[grp, grp]
     c(
       "opening"    = opening_A,
-      "increase"   = sum(ext_mat[, grp]) - closing_A - unchanged_A,
-      "decrease"   = -1*(sum(ext_mat[grp, ]) - opening_A - unchanged_A),
+      "increase"   = closing_A - unchanged_A,
+      "decrease"   = -1*(opening_A - unchanged_A),
       "net change" = closing_A - opening_A,
       "closing"    = closing_A)
   }
