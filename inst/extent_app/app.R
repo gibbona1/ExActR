@@ -24,7 +24,10 @@ logo_info <- list(
     src  = "https://www.marei.ie/wp-content/uploads/2021/06/Nature-Energy-Project-profile.jpg"),
   "for-es" = list(
     href = "https://www.for-es.ie/",
-    src  = "https://static.wixstatic.com/media/94066f_291a8945f27e4b6e9f455baa3a6d0428~mv2.png/v1/fill/w_140,h_39,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/FOR-ES_Logo-Colour.png")
+    src  = "https://static.wixstatic.com/media/94066f_291a8945f27e4b6e9f455baa3a6d0428~mv2.png/v1/fill/w_140,h_39,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/FOR-ES_Logo-Colour.png"),
+  "farm-zero-c" = list(
+    href = "https://biorbic.com/farm-zero-c/",
+    src  = "https://biorbic.com/wp-content/uploads/2022/05/Farm-Zero-C-logo-white-no-b_g.png")
   )
 
 
@@ -147,7 +150,8 @@ uifunc <- function() {
     header  = dashboardHeader(title      = "Extent Account Creator", 
                               titleWidth = "300px",
                               get_logo("nature-energy"),
-                              get_logo("for-es")
+                              get_logo("for-es"),
+                              get_logo("farm-zero-c")
                               ),
     sidebar = dashboardSidebar(
       tags$head(tags$style(HTML(".sidebar-menu > li {white-space: normal;}"))),
