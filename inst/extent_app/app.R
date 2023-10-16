@@ -266,7 +266,11 @@ server <- function(input, output, session) {
   sfs    <- reactiveValues()
   
   plot_names <- reactive({
-    p_names <- c("plotComp", "plotStack", paste0("plotMap", mapIds()))
+    n <- length(mapIds())
+    p_names <- c("plotComp", "plotStack", 
+                 paste0(rep("plotMap", n), mapIds()),
+                 paste0(rep("plotInt", n-1), mapIds()[-1])
+                 )
     for(plt in p_names)
       plots[[plt]] <- NULL
     return(p_names)
@@ -468,6 +472,8 @@ server <- function(input, output, session) {
       renderMapPlot(id)
       renderExpTable(paste0(id))
     }
+    for(id in mapIds()[-1])
+      renderIntPlot(id)
   })
 
   lookupData <- reactive({
@@ -647,10 +653,6 @@ server <- function(input, output, session) {
       
       #I think it's faster to intersect everything up front and then lookup
       df_int <- dfIntersection()[[paste0(id)]]
-      #browser()
-      #plot_extent(df1, grp_col1, get_sf_name(1))
-      #plot_extent(df2, grp_col2, get_sf_name(1))
-      #plot_extent(df_int %>% filter(df_int[[grp_col1]]!=df_int[[grp_col2]]), grp_col1, get_sf_name(1))
       
       cross_mat <- do.call(rbind, 
               lapply(code_grps, function(grp1) {
@@ -807,6 +809,23 @@ server <- function(input, output, session) {
     print(p)
   }
   
+  plot_intersection <- function(data, cols, name){
+    data_long <- data %>% 
+      tidyr::pivot_longer(all_of(cols), names_to = "group", values_to = "group_val") %>%
+      mutate(group_val = code_lookup(.data[["group_val"]])) %>%
+      arrange(group_val)
+    col_map <- unique(plotCols()(data_long$group_val))
+    p <- ggplot(data_long, aes(fill = group_val)) +
+      geom_sf(color = NA) +
+      labs(title = name,
+           fill  = "Ecosystem Type") + 
+      theme_bw() + 
+      scale_fill_manual(values = col_map) +
+      coord_sf(crs = as.numeric(input$sel_crs)) +
+      facet_wrap(vars(group))
+    print(p)
+  }
+  
   renderMapPlot <- function(id){
     m_id <- paste0("plotMap", id)
     output[[m_id]] <- renderPlot({
@@ -816,6 +835,21 @@ server <- function(input, output, session) {
       print(p)
     })
     return()
+  }
+  
+  renderIntPlot <- function(id){
+    m_id <- paste0("plotInt", id)
+    output[[m_id]] <- renderPlot({
+      code_grps <- codeGroups()
+      
+      grp_col1 <- input[[get_msc(id - 1)]]
+      grp_col2 <- input[[get_msc(id)]]
+      df_int <- dfIntersection()[[paste0(id)]] 
+      df_int <- df_int %>% filter(df_int[[grp_col1]] != df_int[[grp_col2]])
+      plt_title <- paste0("Areas changed over time (", id-1, "-", id, ")")
+      p <- plots[[m_id]] <- plot_intersection(df_int, c(grp_col1, grp_col2), plt_title)
+      print(p)
+    })
   }
   
   render_download_bttn <- function(id, resize = TRUE, use_date = FALSE){
