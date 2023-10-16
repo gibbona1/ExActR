@@ -587,7 +587,7 @@ server <- function(input, output, session) {
       row_df <- data.frame(time   = id,
                            id     = colnames(extent_df),
                            open   = chk1(id, NA, extent_df["opening", ]),
-                           close  = as.numeric(extent_df["closing", ]),
+                           close  = as.numeric(chk1(id, extent_df["opening", ], extent_df["closing", ])),
                            change = chk1(id, NA, extent_df["net change", ]))
       change_df <- rbind(change_df, row_df)
     }
