@@ -612,6 +612,21 @@ server <- function(input, output, session) {
       return(df)
     }, rownames = TRUE)
   }
+  
+  dfIntersection <- reactive({
+    if(any(sapply(mapIds(), plot_wait)))
+      return(NULL)
+    sf_use_s2(input$use_s2)
+    map_ids <- mapIds()[-1]
+    
+    df_int_list <- lapply(map_ids, function(id) {
+      df1 <- sfs[[paste0(id - 1)]] %>% st_make_valid()
+      df2 <- sfs[[paste0(id)]] %>% st_make_valid()
+      return(st_intersection(df1, df2))
+    })
+    names(df_int_list) <- map_ids
+    return(df_int_list)
+  })
 
   #A bit more complicated. This now has a matrix where:
   ##diagonals: amounts unchanged between opening and closing in that group
@@ -625,16 +640,13 @@ server <- function(input, output, session) {
     res_l <- list()
     
     for(id in mapIds()[-1]){
-      df1 <- sfs[[paste0(id - 1)]] %>% st_make_valid()
-      df2 <- sfs[[paste0(id)]] %>% st_make_valid()
-  
       code_grps <- codeGroups()
       
       grp_col1 <- input[[get_msc(id - 1)]]
       grp_col2 <- input[[get_msc(id)]]
       
       #I think it's faster to intersect everything up front and then lookup
-      df_int <- st_intersection(df1, df2)
+      df_int <- dfIntersection()[[paste0(id)]]
       #browser()
       #plot_extent(df1, grp_col1, get_sf_name(1))
       #plot_extent(df2, grp_col2, get_sf_name(1))
