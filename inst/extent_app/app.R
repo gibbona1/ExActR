@@ -147,7 +147,7 @@ ul    <- tags$ul
 
 uifunc <- function() {
   dashboardPage(
-    header  = dashboardHeader(title      = "Extent Account Creator", 
+    header  = dashboardHeader(title      = div(h3("ExActR", style="margin: 0;"), h5('Extent Account Creator', style="margin: 0;")), 
                               titleWidth = "300px",
                               get_logo("nature-energy"),
                               get_logo("for-es"),
