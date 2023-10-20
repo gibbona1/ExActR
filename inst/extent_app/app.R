@@ -850,7 +850,7 @@ server <- function(input, output, session) {
       grp_col2 <- input[[get_msc(id)]]
       df_int <- dfIntersection()[[paste0(id)]] 
       df_int <- df_int %>% filter(df_int[[grp_col1]] != df_int[[grp_col2]])
-      plt_title <- paste0("Areas changed over time (", id-1, "-", id, ")")
+      plt_title <- paste("Areas changed over time", chng_time(id))
       p <- plots[[m_id]] <- plot_intersection(df_int, c(grp_col1, grp_col2), plt_title)
       print(p)
     })
