@@ -814,13 +814,23 @@ server <- function(input, output, session) {
   }
   
   plot_intersection <- function(data, cols, name){
-    data_long <- data %>% 
-      tidyr::pivot_longer(all_of(cols), names_to = "group", values_to = "group_val") %>%
-      mutate(group_val = code_lookup(.data[["group_val"]])) %>%
-      arrange(group_val)
-    col_map <- unique(plotCols()(data_long$group_val))
-    p <- ggplot(data_long, aes(fill = group_val)) +
+    data_chg  <- data %>% filter(data[[cols[1]]] != data[[cols[2]]])
+    data_same <- data %>% filter(data[[cols[1]]] == data[[cols[2]]])
+    
+    make_long <- function(df){
+      df %>% 
+        tidyr::pivot_longer(all_of(cols), names_to = "group", values_to = "group_val") %>%
+        mutate(group_val = code_lookup(.data[["group_val"]])) %>%
+        arrange(group_val)
+    }
+    
+    data_chg_long  <- data_chg %>% make_long()
+    data_same_long <- data_same %>% make_long()
+    
+    col_map <- unique(plotCols()(data_chg_long$group_val))
+    p <- ggplot(data_chg_long, aes(fill = group_val)) +
       geom_sf(color = NA) +
+      geom_sf(fill = "#666666", alpha = 0.25, data = data_same_long, color = NA) +
       labs(title = name,
            fill  = "Ecosystem Type") + 
       theme_bw() + 
@@ -849,7 +859,6 @@ server <- function(input, output, session) {
       grp_col1 <- input[[get_msc(id - 1)]]
       grp_col2 <- input[[get_msc(id)]]
       df_int <- dfIntersection()[[paste0(id)]] 
-      df_int <- df_int %>% filter(df_int[[grp_col1]] != df_int[[grp_col2]])
       plt_title <- paste("Areas changed over time", chng_time(id))
       p <- plots[[m_id]] <- plot_intersection(df_int, c(grp_col1, grp_col2), plt_title)
       print(p)
