@@ -947,12 +947,16 @@ server <- function(input, output, session) {
         if(startsWith(tab, "expTab")){
           colnames(tab_df)[2] <- "Area (m\\textsuperscript{2})"
           colnames(tab_df)[4] <- "\\% Coverage"
+          tab_df <- tab_df[,-2]
+          tab_rownames <- FALSE
+        } else {
+          tab_rownames <- TRUE
         }
         write.csv(tab_df, paste0(tab, ".csv"))
         write.table(tab_df, paste0(tab, ".txt"))
         print(xtable::xtable(tab_df, caption = str_replace_all(tab_caption(tab), "_", "\\\\_")), 
               type = "latex", file = paste0(tab, ".tex"), 
-              sanitize.text.function = identity)
+              sanitize.text.function = identity, include.rownames=tab_rownames)
       }
       
       #tables in latex, text and HTML format
