@@ -189,7 +189,8 @@ uifunc <- function() {
       fileInput("lookupFile", "Upload Lookup table", accept = ".csv"),
       verbatimTextOutput("lookup_file"),
       checkboxInput("use_codes", "Use code lookup", value = FALSE),
-      checkboxInput("use_date", "Use date in plot download filenames", value = FALSE)
+      checkboxInput("use_date", "Use date in plot download filenames", value = FALSE),
+      sliderInput("int_alpha", "Intersection plot unchanged areas opacity", min=0, max=1, step=0.05, value = 0.25)
     ),
     body    = dashboardBody(
     useShinyjs(),
@@ -813,7 +814,7 @@ server <- function(input, output, session) {
     print(p)
   }
   
-  plot_intersection <- function(data, cols, name){
+  plot_intersection <- function(data, cols, name, alpha){
     data_chg  <- data %>% filter(data[[cols[1]]] != data[[cols[2]]])
     data_same <- data %>% filter(data[[cols[1]]] == data[[cols[2]]])
     
@@ -830,7 +831,7 @@ server <- function(input, output, session) {
     col_map <- unique(plotCols()(data_chg_long$group_val))
     p <- ggplot(data_chg_long, aes(fill = group_val)) +
       geom_sf(color = NA) +
-      geom_sf(fill = "#666666", alpha = 0.25, data = data_same_long, color = NA) +
+      geom_sf(fill = "#666666", alpha = alpha, data = data_same_long, color = NA) +
       labs(title = name,
            fill  = "Ecosystem Type") + 
       theme_bw() + 
@@ -860,7 +861,7 @@ server <- function(input, output, session) {
       grp_col2 <- input[[get_msc(id)]]
       df_int <- dfIntersection()[[paste0(id)]] 
       plt_title <- paste("Areas changed over time", chng_time(id))
-      p <- plots[[m_id]] <- plot_intersection(df_int, c(grp_col1, grp_col2), plt_title)
+      p <- plots[[m_id]] <- plot_intersection(df_int, c(grp_col1, grp_col2), plt_title, input$int_alpha)
       print(p)
     })
   }
