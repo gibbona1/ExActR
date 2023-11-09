@@ -38,7 +38,7 @@ get_logo <- function(id)
           style = "margin-top: -5px; margin-bottom: -5px; background: #86e36d;")
 
 
-crs_data <- rgdal::make_EPSG()
+crs_data <- read.csv("ext_data/EPSG.csv")
 crs_list <- crs_data$code
 names(crs_list) <- paste(paste0("EPSG:", crs_list), crs_data$note, sep = " - ")
 default_crs     <- 4326
