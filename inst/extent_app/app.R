@@ -159,6 +159,7 @@ uifunc <- function() {
       collapsed = TRUE,
       selectizeInput("sel_crs", "Select CRS", choices = NULL, width = "100%"),
       checkboxInput("use_s2", "Use s2 package", value = TRUE),
+      selectInput("plot_ext", "Plot save format", choices = c("png", "jpg", "svg")),
       checkboxInput("show_legend", "Show leaflet legends", value = TRUE),
       actionButton("addTimePoint", 
                    label = "Add Time Point", 
@@ -866,9 +867,9 @@ server <- function(input, output, session) {
     })
   }
   
-  render_download_bttn <- function(id, resize = TRUE, use_date = FALSE){
+  render_download_bttn <- function(id, resize = TRUE, use_date = FALSE, ext = input$plot_ext){
     downloadHandler(
-      filename = function() paste0(id, ifelse(use_date, paste0('-', Sys.Date()), ""), '.png'),
+      filename = function() paste0(id, ifelse(use_date, paste0('-', Sys.Date()), ""), '.', input$plot_ext),
       content  = function(con) {
         if(resize){
           # get image code from URI
