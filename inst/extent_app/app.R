@@ -871,7 +871,7 @@ server <- function(input, output, session) {
     downloadHandler(
       filename = function() paste0(id, ifelse(use_date, paste0('-', Sys.Date()), ""), '.', input$plot_ext),
       content  = function(con) {
-        if(resize){
+        if(resize & (ext != "svg")){
           # get image code from URI
           img_src <- gsub("data:.+base64,", "", input[[paste0(id, "_img_src")]])
           # decode the image code into the image
