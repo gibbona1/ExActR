@@ -305,8 +305,11 @@ server <- function(input, output, session) {
     if(any(endsWith(shpdf$name, ".zip"))){
       upfiles   <- unzip(file.path(updir, shpdf$name[1]), exdir = updir)
       tmp_file1 <- upfiles[endsWith(upfiles, ".shp")]
-    } else if(endsWith(shpdf$name, ".geojson")) {
+    } else if(any(endsWith(shpdf$name, ".geojson"))) {
       tmp_file1 <- file.path(updir, shpdf$name[endsWith(shpdf$name, ".geojson")])
+    #} else if(any(endsWith(shpdf$name, ".tif"))) {
+    #  tmp_file1 <- file.path(updir, shpdf$name[endsWith(shpdf$name, ".tif")])
+    #  return(st_as_sf(stars::read_stars(tmp_file1), merge = TRUE, as_points = FALSE, downsample = 100))
     } else {
       tmp_file1 <- file.path(updir, shpdf$name[endsWith(shpdf$name, ".shp")])
     }

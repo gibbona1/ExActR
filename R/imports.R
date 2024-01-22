@@ -15,4 +15,5 @@
 #' @import dplyr
 #' @import stringr
 #' @import xtable
+#' @import stars
 NULL
