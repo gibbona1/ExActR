@@ -2,7 +2,7 @@ pkgload::load_all()
 
 #need to upload at least .shp, .shx, .dbf, .prj files for each
 #so the map knows where to put itself
-map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj", ".zip")
+map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj", ".zip", ".geojson")
 #TODO:
 ## UI
 ### (common) legend outside of map and fully visible
@@ -305,7 +305,9 @@ server <- function(input, output, session) {
     if(any(endsWith(shpdf$name, ".zip"))){
       upfiles   <- unzip(file.path(updir, shpdf$name[1]), exdir = updir)
       tmp_file1 <- upfiles[endsWith(upfiles, ".shp")]
-    } else{
+    } else if(endsWith(shpdf$name, ".geojson")) {
+      tmp_file1 <- file.path(updir, shpdf$name[endsWith(shpdf$name, ".geojson")])
+    } else {
       tmp_file1 <- file.path(updir, shpdf$name[endsWith(shpdf$name, ".shp")])
     }
     return(st_read(tmp_file1, quiet = TRUE))
