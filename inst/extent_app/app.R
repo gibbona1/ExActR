@@ -978,12 +978,13 @@ server <- function(input, output, session) {
       for(plt in plot_names()){
         if(is.null(plots[[plt]]))
           next
-        ggsave(paste0(plt, ".png"), plots[[plt]])
-        ggsave(paste0(plt, ".pdf"), plots[[plt]])
+        for(ext in c(".jpg", ".png", ".svg", ".pdf")){
+          ggsave(paste0(plt, ext), plots[[plt]])
+        }
       }
       
       #might need to save Rdata or log (at least inputs)
-      z_files <- list.files(pattern = "\\.(pdf|png|html|txt|tex)$")
+      z_files <- list.files(pattern = "\\.(pdf|png|svg|jpg|html|txt|tex)$")
 
       zip(zipfile = con, files = z_files)
   }, contentType = "application/zip")
