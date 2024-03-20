@@ -191,7 +191,8 @@ uifunc <- function() {
       verbatimTextOutput("lookup_file"),
       checkboxInput("use_codes", "Use code lookup", value = FALSE),
       checkboxInput("use_date", "Use date in plot download filenames", value = FALSE),
-      sliderInput("int_alpha", "Intersection plot unchanged areas opacity", min=0, max=1, step=0.05, value = 0.25)
+      sliderInput("int_alpha", "Intersection plot unchanged areas opacity", min=0, max=1, step=0.05, value = 0.25),
+      checkboxInput("map_theme", "Remove map coordinates")
     ),
     body    = dashboardBody(
     useShinyjs(),
@@ -823,7 +824,7 @@ server <- function(input, output, session) {
     print(p)
   }
   
-  plot_intersection <- function(data, cols, name, alpha){
+  plot_intersection <- function(data, cols, name, alpha, map_theme){
     data_chg  <- data %>% filter(data[[cols[1]]] != data[[cols[2]]])
     data_same <- data %>% filter(data[[cols[1]]] == data[[cols[2]]])
     
@@ -847,6 +848,13 @@ server <- function(input, output, session) {
       scale_fill_manual(values = col_map) +
       coord_sf(crs = as.numeric(input$sel_crs)) +
       facet_wrap(vars(group))
+    if(map_theme){
+      p <- p + theme(
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks  = element_blank()
+      )
+    }
     print(p)
   }
   
@@ -873,7 +881,7 @@ server <- function(input, output, session) {
       }
       df_int <- dfIntersection()[[paste0(id)]] 
       plt_title <- paste("Areas changed over time", chng_time(id))
-      p <- plots[[m_id]] <- plot_intersection(df_int, c(grp_col1, grp_col2), plt_title, input$int_alpha)
+      p <- plots[[m_id]] <- plot_intersection(df_int, c(grp_col1, grp_col2), plt_title, input$int_alpha, input$map_theme)
       print(p)
     })
   }
