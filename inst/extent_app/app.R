@@ -661,6 +661,9 @@ server <- function(input, output, session) {
       
       grp_col1 <- input[[get_msc(id - 1)]]
       grp_col2 <- input[[get_msc(id)]]
+      if(grp_col1 == grp_col2){
+        grp_col2 = paste0(grp_col2, ".1")
+      }
       
       #I think it's faster to intersect everything up front and then lookup
       df_int <- dfIntersection()[[paste0(id)]]
@@ -865,6 +868,9 @@ server <- function(input, output, session) {
       
       grp_col1 <- input[[get_msc(id - 1)]]
       grp_col2 <- input[[get_msc(id)]]
+      if(grp_col1 == grp_col2){
+        grp_col2 = paste0(grp_col2, ".1")
+      }
       df_int <- dfIntersection()[[paste0(id)]] 
       plt_title <- paste("Areas changed over time", chng_time(id))
       p <- plots[[m_id]] <- plot_intersection(df_int, c(grp_col1, grp_col2), plt_title, input$int_alpha)
