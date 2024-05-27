@@ -790,6 +790,7 @@ server <- function(input, output, session) {
       geom_bar_stack(aes(x = time, y = close, fill = id)) +
       ggtitle("Habitat composition") +
       scale_fill_manual(values = plotCols()(code_lookup(df$id))) +
+      labs(fill  = "Ecosystem Type") +
       ylab("Area (Ha)") +
       xlab("") + theme_classic()
     print(p)
@@ -805,6 +806,7 @@ server <- function(input, output, session) {
       coord_flip() +
       ggtitle("Ecosystem type net changes") +
       scale_fill_manual(values = plotCols()(code_lookup(changeData()$id))) +
+      labs(fill  = "Ecosystem Type") +
       ylab("Area change (Ha)") +
       xlab("") + theme_classic() +
       facet_grid(vars(time))
