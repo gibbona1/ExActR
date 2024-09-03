@@ -9,3 +9,8 @@ Repository for what will hopefully be an automated programme to ingest a habitat
 Starting with an extent account to get the ball rolling.
 
 A demo deployment of the Extent Account Shiny App is available [here](https://gibbona1.shinyapps.io/extent_app/)
+
+TODO: explain R install
+General documentation
+Instructions
+ecoevoarxiv link
