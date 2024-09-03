@@ -1,5 +1,6 @@
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/gibbona1/NCAExtent/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/gibbona1/NCAExtent/actions/workflows/R-CMD-check.yaml)
+[![EcoEvoRxiv](http://img.shields.io/badge/DOI-10.32942/X2K332-red.svg)](https://ecoevorxiv.org/repository/view/7315/)
 <!-- badges: end -->
 
 # Natural_Capital_App
@@ -13,4 +14,3 @@ A demo deployment of the Extent Account Shiny App is available [here](https://gi
 TODO: explain R install
 General documentation
 Instructions
-ecoevoarxiv link
