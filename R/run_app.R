@@ -1,5 +1,3 @@
-pkgload::load_all()
-
 #need to upload at least .shp, .shx, .dbf, .prj files for each
 #so the map knows where to put itself
 map_accepts <- c(".shp", ".dbf", ".sbn", ".sbx", ".shx", ".prj", ".zip", ".geojson")
@@ -37,13 +35,13 @@ get_logo <- function(id)
                  tags$img(src=logo_info[[id]]$src, height='25')),
           style = "margin-top: -5px; margin-bottom: -5px; background: #86e36d;")
 
-
-crs_data <- read.csv("ext_data/EPSG.csv")
+app_folder <- "inst/extent_app"
+crs_data <- read.csv(here(app_folder, "ext_data/EPSG.csv"))
 crs_list <- crs_data$code
 names(crs_list) <- paste(paste0("EPSG:", crs_list), crs_data$note, sep = " - ")
 default_crs     <- 4326
 
-lookup_file <- "ext_data/habitat_codes.csv"
+lookup_file <- here(app_folder, "ext_data/habitat_codes.csv")
 
 options(shiny.maxRequestSize = 256 * 1024 ^ 2)
 
@@ -433,7 +431,7 @@ server <- function(input, output, session) {
       paste("Upload", map_oc(idx, inp), "Map", paste0("(", idx, ")"))
     
     do.call(sfdiv, 
-            purrr::map(mapIds(),
+            map(mapIds(),
               ~ sfInput(.x, sfid(.x), mapTitle(.x), width = width, inp = input)
               )
             )
@@ -446,7 +444,7 @@ server <- function(input, output, session) {
     if(!input[[paste0("include_", tabname, "_group")]])
       return(NULL)
     do.call(sfdiv, 
-            purrr::map(as.character(mapIds()[-1]),
+            map(as.character(mapIds()[-1]),
                        ~ sfdivi(h5(tabtitle(.x, tabname)),
                              extentObj(tabname, .x, brow, bcol))
             )
@@ -536,8 +534,8 @@ server <- function(input, output, session) {
       )
     
     do.call(div, 
-            purrr::map(code_grp, 
-                       ~ colourpicker::colourInput(colpicker_id(.x),
+            map(code_grp, 
+                       ~ colourInput(colpicker_id(.x),
                                      label = .x,
                                      value = vir_palette(.x)
                                      )
@@ -713,12 +711,12 @@ server <- function(input, output, session) {
       code_grp <- codeGroups()
       
       pair_df <- expand.grid(from = code_grp, to = code_grp)
-      pair_df <- pair_df[pair_df$from != pair_df$to,]
+      pair_df <- pair_df[pair_df[, "from"] != pair_df[, "to"],]
 
       res <- sapply(1:nrow(pair_df), function(i) {
         from <- pair_df[i, "from"]
         to   <- pair_df[i, "to"]
-        return(ext_mat[from,to])
+        return(ext_mat[from, to])
       })
       
       pair_df <- pair_df %>% 
@@ -728,7 +726,7 @@ server <- function(input, output, session) {
                perc   = change/sum(change)) %>%
         mutate(across(c('change', 'perc'), \(x) round(x, digits = 2)))
       total_df <- data.frame(from = "Total change", to = "", 
-                             change = sum(pair_df$change), perc = 1.00)
+                             change = sum(pair_df[, "change"]), perc = 1.00)
       pair_df <- rbind(pair_df, total_df)
       colnames(pair_df) <- c("Change from", "Change to", "Area (Ha)", "% change")
       
@@ -832,7 +830,7 @@ server <- function(input, output, session) {
     
     make_long <- function(df){
       df %>% 
-        tidyr::pivot_longer(all_of(cols), names_to = "group", values_to = "group_val") %>%
+        pivot_longer(all_of(cols), names_to = "group", values_to = "group_val") %>%
         mutate(group_val = code_lookup(.data[["group_val"]])) %>%
         arrange(group_val)
     }
@@ -924,7 +922,7 @@ server <- function(input, output, session) {
       return(NULL)
     
     do.call(div, 
-            purrr::map(mapIds(),
+            map(mapIds(),
                        ~ div(h3(sprintf("%s Data (%s) - %s", 
                                         map_oc(.x, mapIds()), .x, 
                                         get_sf_name(.x))),
@@ -986,7 +984,7 @@ server <- function(input, output, session) {
         }
         write.csv(tab_df, paste0(tab, ".csv"))
         write.table(tab_df, paste0(tab, ".txt"))
-        print(xtable::xtable(tab_df, caption = str_replace_all(tab_caption(tab), "_", "\\\\_")), 
+        print(xtable(tab_df, caption = str_replace_all(tab_caption(tab), "_", "\\\\_")), 
               type = "latex", file = paste0(tab, ".tex"), 
               sanitize.text.function = identity, include.rownames=tab_rownames)
       }
@@ -1011,4 +1009,16 @@ server <- function(input, output, session) {
   }, contentType = "application/zip")
 }
 
-shinyApp(uifunc(), server)
+#' Run the Shiny Application
+#' 
+#' Launches the shiny application when called
+#'
+#' @export
+run_app <- function(){
+  if (interactive()) {
+    runApp(appDir = system.file("extent_app", package = "ExActR"))
+  } else {
+    shinyAppDir(appDir = system.file("extent_app", package = "ExActR"))
+  }
+  #shinyApp(ui_func(), server)
+}

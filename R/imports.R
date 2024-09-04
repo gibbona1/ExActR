@@ -1,6 +1,6 @@
 #' @import shiny
 #' @import colourpicker
-#' @rawNamespace import(shinyjs, except=c(runExample, colourInput))
+#' @rawNamespace import(shinyjs, except=c(runExample, colourInput, updateColourInput, colourPicker))
 #' @import shinyBS
 #' @import shinyjqui
 #' @import shinydashboard
@@ -16,4 +16,7 @@
 #' @import stringr
 #' @import xtable
 #' @import stars
+#' @import here
+#' @import purrr
+#' @import tidyr
 NULL
