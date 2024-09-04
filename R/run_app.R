@@ -115,7 +115,7 @@ get_sf_path <- function(id, inp){
   return(strsplit(x, "\\.")[[1]][1])
 }
 
-sfInput <- function(id, name, lab, width = NULL, inp = input){
+sfInput <- function(id, name, lab, width = NULL, inp = NULL){
   sfdivi(id = paste(name, "grp", sep = "_"),
     fileInput(name, lab, accept = map_accepts, multiple = TRUE, width = width),
     tags$style("white-space: pre-wrap;"),
@@ -720,10 +720,10 @@ server <- function(input, output, session) {
       })
       
       pair_df <- pair_df %>% 
-        mutate(from   = code_lookup(from),
-               to     = code_lookup(to),
+        mutate(from   = code_lookup(.data[['from']]),
+               to     = code_lookup(.data[['to']]),
                change = res,
-               perc   = change/sum(change)) %>%
+               perc   = .data[['change']]/sum(.data[['change']])) %>%
         mutate(across(c('change', 'perc'), \(x) round(x, digits = 2)))
       total_df <- data.frame(from = "Total change", to = "", 
                              change = sum(pair_df[, "change"]), perc = 1.00)
@@ -800,7 +800,7 @@ server <- function(input, output, session) {
       mutate(id   = code_lookup(id),
              time = sapply(time, chng_time)) %>%
       ggplot() + 
-      geom_bar(aes(x = id, y = change, fill = id), stat = "identity") +
+      geom_bar(aes(x = id, y = .data[['change']], fill = id), stat = "identity") +
       coord_flip() +
       ggtitle("Ecosystem type net changes") +
       scale_fill_manual(values = plotCols()(code_lookup(changeData()$id))) +
@@ -832,14 +832,14 @@ server <- function(input, output, session) {
       df %>% 
         pivot_longer(all_of(cols), names_to = "group", values_to = "group_val") %>%
         mutate(group_val = code_lookup(.data[["group_val"]])) %>%
-        arrange(group_val)
+        arrange(.data[["group_val"]])
     }
     
     data_chg_long  <- data_chg %>% make_long()
     data_same_long <- data_same %>% make_long()
     
-    col_map <- unique(plotCols()(data_chg_long$group_val))
-    p <- ggplot(data_chg_long, aes(fill = group_val)) +
+    col_map <- unique(plotCols()(data_chg_long[, 'group_val']))
+    p <- ggplot(data_chg_long, aes(fill = .data[['group_val']])) +
       geom_sf(color = NA) +
       geom_sf(fill = "#666666", alpha = alpha, data = data_same_long, color = NA) +
       labs(title = name,
@@ -847,7 +847,7 @@ server <- function(input, output, session) {
       theme_bw() + 
       scale_fill_manual(values = col_map) +
       coord_sf(crs = as.numeric(input$sel_crs)) +
-      facet_wrap(vars(group))
+      facet_wrap(vars(.data[["group"]]))
     if(map_theme){
       p <- p + theme(
         axis.text.x = element_blank(),
