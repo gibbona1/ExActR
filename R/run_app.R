@@ -837,8 +837,8 @@ server <- function(input, output, session) {
     
     data_chg_long  <- data_chg %>% make_long()
     data_same_long <- data_same %>% make_long()
-    
-    col_map <- unique(plotCols()(data_chg_long[, 'group_val']))
+
+    col_map <- unique(plotCols()(data_chg_long[, 'group_val'] %>% pull('group_val')))
     p <- ggplot(data_chg_long, aes(fill = .data[['group_val']])) +
       geom_sf(color = NA) +
       geom_sf(fill = "#666666", alpha = alpha, data = data_same_long, color = NA) +
