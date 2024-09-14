@@ -1,5 +1,5 @@
 #' @import shiny
-#' @import colourpicker
+#' @rawNamespace import(colourpicker, except=c(runExample))
 #' @rawNamespace import(shinyjs, except=c(runExample, colourInput, updateColourInput, colourPicker))
 #' @import shinyBS
 #' @import shinyjqui
@@ -15,8 +15,8 @@
 #' @import dplyr
 #' @import stringr
 #' @import xtable
-#' @import stars
 #' @import here
 #' @import purrr
 #' @import tidyr
+#' @importFrom utils read.csv unzip write.csv write.table zip
 NULL
