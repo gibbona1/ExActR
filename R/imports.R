@@ -17,7 +17,6 @@
 #' @import xtable
 #' @import here
 #' @import purrr
-#' @import tidyr
-#' @importFrom utils read.csv unzip write.csv write.table zip
+#' @importFrom utils read.csv unzip write.csv write.table zip stack
 #' @importFrom terra vect intersect makeValid
 NULL

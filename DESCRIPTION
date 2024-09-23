@@ -28,6 +28,5 @@ Imports:
     here,
     colourpicker,
     purrr,
-    tidyr,
     xtable,
     terra
