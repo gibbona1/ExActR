@@ -12,11 +12,12 @@
 #' @import ggplot2
 #' @import magick
 #' @import xfun
-#' @import dplyr
+#' @rawNamespace import(dplyr, except=c(intersect))
 #' @import stringr
 #' @import xtable
 #' @import here
 #' @import purrr
 #' @import tidyr
 #' @importFrom utils read.csv unzip write.csv write.table zip
+#' @importFrom terra vect intersect makeValid
 NULL

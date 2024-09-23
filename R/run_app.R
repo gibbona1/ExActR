@@ -644,7 +644,15 @@ server <- function(input, output, session) {
         df1 <- st_simplify(df1, dTolerance = as.numeric(input$st_simp_dist))
         df2 <- st_simplify(df2, dTolerance = as.numeric(input$st_simp_dist))
       }
-      return(st_intersection(df1, df2))
+      terra1 <- vect(df1)
+      terra2 <- vect(df2)
+      
+      terra1 <- terra::project(terra1, terra::crs(terra2))
+      
+      df_int <- intersect(terra2, terra1) %>% 
+        st_as_sf()
+
+      return(df_int)
     })
     
     names(df_int_list) <- map_ids

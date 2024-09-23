@@ -29,4 +29,5 @@ Imports:
     colourpicker,
     purrr,
     tidyr,
-    xtable
+    xtable,
+    terra
