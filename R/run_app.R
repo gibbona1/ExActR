@@ -159,6 +159,8 @@ uifunc <- function() {
       checkboxInput("use_s2", "Use s2 package", value = TRUE),
       selectInput("plot_ext", "Plot save format", choices = c("png", "jpg", "svg")),
       checkboxInput("show_legend", "Show leaflet legends", value = TRUE),
+      checkboxInput("st_simp", "Simplify gemoetry", value = FALSE),
+      selectInput("st_simp_dist", "Simplify geometry tolerance (m)", choices = c(1, 10, 100, 1000)),
       actionButton("addTimePoint", 
                    label = "Add Time Point", 
                    icon  = icon("plus-circle"), 
@@ -638,8 +640,13 @@ server <- function(input, output, session) {
     df_int_list <- lapply(map_ids, function(id) {
       df1 <- sfs[[paste0(id - 1)]] %>% st_make_valid()
       df2 <- sfs[[paste0(id)]] %>% st_make_valid()
+      if(input$st_simp){
+        df1 <- st_simplify(df1, dTolerance = as.numeric(input$st_simp_dist))
+        df2 <- st_simplify(df2, dTolerance = as.numeric(input$st_simp_dist))
+      }
       return(st_intersection(df1, df2))
     })
+    
     names(df_int_list) <- map_ids
     return(df_int_list)
   })
