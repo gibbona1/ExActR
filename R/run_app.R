@@ -159,7 +159,7 @@ uifunc <- function() {
       checkboxInput("use_s2", "Use s2 package", value = TRUE),
       selectInput("plot_ext", "Plot save format", choices = c("png", "jpg", "svg")),
       checkboxInput("show_legend", "Show leaflet legends", value = TRUE),
-      checkboxInput("st_simp", "Simplify gemoetry", value = FALSE),
+      checkboxInput("st_simp", "Simplify geometry", value = FALSE),
       selectInput("st_simp_dist", "Simplify geometry tolerance (m)", choices = c(1, 10, 100, 1000)),
       actionButton("addTimePoint", 
                    label = "Add Time Point", 
