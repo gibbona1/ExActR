@@ -157,6 +157,7 @@ uifunc <- function() {
       collapsed = TRUE,
       selectizeInput("sel_crs", "Select CRS", choices = NULL, width = "100%"),
       checkboxInput("use_s2", "Use s2 package", value = TRUE),
+      selectInput("sf_type", "intersection type", choices = c("terra", "sf")),
       selectInput("plot_ext", "Plot save format", choices = c("png", "jpg", "svg")),
       checkboxInput("show_legend", "Show leaflet legends", value = TRUE),
       checkboxInput("st_simp", "Simplify geometry", value = FALSE),
@@ -664,13 +665,16 @@ server <- function(input, output, session) {
         df1 <- st_simplify(df1, dTolerance = as.numeric(input$st_simp_dist))
         df2 <- st_simplify(df2, dTolerance = as.numeric(input$st_simp_dist))
       }
-      terra1 <- vect(df1)
-      terra2 <- vect(df2)
       
-      terra1 <- terra::project(terra1, terra::crs(terra2))
-      
-      df_int <- intersect(terra2, terra1) %>% 
-        st_as_sf()
+      if(input$sf_type == "terra"){
+        terra1 <- vect(df1)
+        terra2 <- vect(df2)
+        
+        df_int <- intersect(terra2, terra1) %>% 
+          st_as_sf()
+      } else {
+        df_int <- st_intersection(df1, df2)
+      }
 
       return(df_int)
     })
