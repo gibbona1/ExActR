@@ -156,7 +156,7 @@ uifunc <- function() {
       width = "300px",
       collapsed = TRUE,
       selectizeInput("sel_crs", "Select CRS", choices = NULL, width = "100%"),
-      checkboxInput("use_s2", "Use s2 package", value = TRUE),
+      checkboxInput("use_s2", "Use s2 package", value = FALSE),
       selectInput("sf_type", "Intersection type", choices = c("terra", "sf")),
       selectInput("plot_ext", "Plot save format", choices = c("png", "jpg", "svg")),
       checkboxInput("show_legend", "Show leaflet legends", value = TRUE),
@@ -670,7 +670,7 @@ server <- function(input, output, session) {
         terra1 <- vect(df1)
         terra2 <- vect(df2)
         
-        df_int <- intersect(terra2, terra1) %>% 
+        df_int <- intersect(terra1, terra2) %>% 
           st_as_sf()
       } else {
         df_int <- st_intersection(df1, df2)
