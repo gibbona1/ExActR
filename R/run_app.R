@@ -157,7 +157,7 @@ uifunc <- function() {
       collapsed = TRUE,
       selectizeInput("sel_crs", "Select CRS", choices = NULL, width = "100%"),
       checkboxInput("use_s2", "Use s2 package", value = TRUE),
-      selectInput("sf_type", "intersection type", choices = c("terra", "sf")),
+      selectInput("sf_type", "Intersection type", choices = c("terra", "sf")),
       selectInput("plot_ext", "Plot save format", choices = c("png", "jpg", "svg")),
       checkboxInput("show_legend", "Show leaflet legends", value = TRUE),
       checkboxInput("st_simp", "Simplify geometry", value = FALSE),
