@@ -12,7 +12,6 @@ RoxygenNote: 7.3.2
 Imports:
     shiny,
     shinyjs,
-    shinyBS,
     shinyjqui,
     shinydashboard,
     shinycssloaders,
@@ -20,6 +19,7 @@ Imports:
     leaflet.extras,
     sf,
     dplyr,
+    tidyr,
     ggplot2,
     magick,
     xfun,

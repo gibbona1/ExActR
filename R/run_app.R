@@ -216,11 +216,31 @@ uifunc <- function() {
         uiOutput("sf_group"),
       ),
       fluidRow(
-       bsCollapse(
-         bsCollapsePanel("Colour mapping",
-                         uiOutput("colour_map")
-                         )
-       )
+        fluidRow(
+          tags$div(
+            class = "panel-group sbs-panel-group", `data-sbs-multi` = "FALSE", id = "collapse0166238", role = "tablist",
+            tags$div(
+              class = "panel panel-default", `value` = "Colour mapping",
+              tags$div(
+                class = "panel-heading", role = "tab", id = "heading_cpanel0451792",
+                tags$h4(
+                  class = "panel-title",
+                  tags$a(
+                    `data-toggle` = "collapse", href = "#cpanel0451792", `data-parent` = "#collapse0166238",
+                    "Colour mapping"
+                  )
+                )
+              ),
+              tags$div(
+                id = "cpanel0451792", class = "panel-collapse collapse", role = "tabpanel",
+                tags$div(
+                  class = "panel-body",
+                  uiOutput("colour_map")
+                )
+              )
+            )
+          )
+        )
       ),
       fluidRow(
         column(12,
@@ -839,35 +859,18 @@ server <- function(input, output, session) {
     print(p)
   }
   
-  pivot_longer_custom <- function(data, cols, names_to = "name", values_to = "value") {
-    
-    # Select only the columns to pivot
-    pivot_cols <- data %>% select(all_of(cols))
-    
-    # Stack the columns into long format using base R
-    stacked_data <- stack(pivot_cols)
-    
-    # Create new column names for names_to and values_to
-    colnames(stacked_data) <- c(values_to, names_to)
-    
-    # Bind the rest of the columns (excluding the pivoted ones) with the stacked data
-    result <- cbind(data %>% select(-all_of(cols)), stacked_data)
-    
-    return(result)
-  }
-  
   plot_intersection <- function(data, cols, name, alpha, map_theme){
     data_chg  <- data %>% filter(data[[cols[1]]] != data[[cols[2]]])
     data_same <- data %>% filter(data[[cols[1]]] == data[[cols[2]]])
     
     make_long <- function(df){
       df %>% 
-        pivot_longer_custom(all_of(cols), names_to = "group", values_to = "group_val") %>%
+        pivot_longer(all_of(cols), names_to = "group", values_to = "group_val") %>%
         #pivot_longer(all_of(cols), names_to = "group", values_to = "group_val") %>%
         mutate(group_val = code_lookup(.data[["group_val"]])) %>%
         arrange(.data[["group_val"]])
     }
-    
+
     data_chg_long  <- data_chg %>% make_long()
     data_same_long <- data_same %>% make_long()
 

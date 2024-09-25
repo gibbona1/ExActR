@@ -1,7 +1,6 @@
 #' @import shiny
 #' @rawNamespace import(colourpicker, except=c(runExample))
 #' @rawNamespace import(shinyjs, except=c(runExample, colourInput, updateColourInput, colourPicker))
-#' @import shinyBS
 #' @import shinyjqui
 #' @import shinydashboard
 #' @import shinycssloaders
@@ -13,6 +12,7 @@
 #' @import magick
 #' @import xfun
 #' @rawNamespace import(dplyr, except=c(intersect))
+#' @import tidyr
 #' @import stringr
 #' @import xtable
 #' @import here
