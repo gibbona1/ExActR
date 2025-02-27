@@ -10,7 +10,7 @@
 #' @import sf
 #' @import ggplot2
 #' @import magick
-#' @import xfun
+#' @rawNamespace import(xfun, except=c(str_wrap))
 #' @rawNamespace import(dplyr, except=c(intersect))
 #' @import tidyr
 #' @import stringr
