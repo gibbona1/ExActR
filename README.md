@@ -1,6 +1,6 @@
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/gibbona1/NCAExtent/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/gibbona1/NCAExtent/actions/workflows/R-CMD-check.yaml)
-[![EcoEvoRxiv](http://img.shields.io/badge/DOI-10.32942/X2K332-red.svg)](https://ecoevorxiv.org/repository/view/7315/)
+[![EcoEvoRxiv](https://img.shields.io/badge/EcoEvoRxiv-10.32942/X2K332-red.svg)](https://doi.org/10.32942/X2K332)
 [![DOI:10.1016/j.ecoinf.2025.103072](http://img.shields.io/badge/DOI-10.1016/j.ecoinf.2025.103072-blue.svg)](https://doi.org/10.1016/j.ecoinf.2025.103072)
 <!-- badges: end -->
 
